@@ -83,6 +83,8 @@ def analyze_dataframe(df,model):
 
         labels = [s['label'].lower() for s in sentiments]
 
+
+
         '''
         yukarıdaki kod satırında sentiments listesindeki her bir sonuç sözlüğünden sadece label i yani etiketi
         alıyoruz ---> (s["label"]) ve bunu (.lower()) ile küçük harfe çeviriyoruz ["positive","negative",....] şeklinde bir liste haline geliyor .
@@ -97,6 +99,7 @@ def analyze_dataframe(df,model):
                 labels.append(kucuk_harfli_etiket)
         
         '''
+
 
 
         # burada(alt satırdaki kodda) az önce oluşturduğumuz labels listesini veriyoruz ve bu listenin indexlerininde

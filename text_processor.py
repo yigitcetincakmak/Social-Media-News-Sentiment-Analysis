@@ -36,7 +36,7 @@ def clean_text(text):
 
         # 2. adımımız URL , mention ve hastag'leri kaldırıyoruz
 
-        text = re.sub(r"http\S+|www\S+|https\S+",text,flags=re.MULTILINE)
+        text = re.sub(r"http\S+|www\S+|https\S+","",text,flags=re.MULTILINE)
 
         '''
         
