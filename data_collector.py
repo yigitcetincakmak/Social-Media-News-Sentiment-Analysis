@@ -7,7 +7,7 @@ import streamlit as st
 
 # --- Tweepy Client ---
 try:
-    client = tweepy.Client(bearer_token=config.TWITTER_BEARER_TOKEN) # client değişkeni ile twitter'ın kapısını çalıyoruz.
+    client = tweepy.Client(bearer_token=config.TWITTER_BEARER_TOKEN) # client değişkeni ile twitter'ın kapısını çalıyoruz.client aslında bizim nesnemiz
     # bearer_token: kapıyı açmak için kullandığımız "giriş kartımız". bu kart, sadece halka açık verileri (hashtag arama gibi) okumamıza izin veriyor.
     print("✅ Tweepy Client (Bearer Token ile) başarıyla başlatıldı.")
 
@@ -22,8 +22,120 @@ except Exception as e:
 
 # --- Tweet Çekme Fonksiyonlarımız ---
 
+
+
+# Girilen Twitter kullanıcı adına ait tweetleri çeker.
+def _fetch_tweets_by_user(username, count=config.TWITTER_MAX_RESULTS):
+    # burada username hangi kullanıcının tweetleri çekilecek.
+    # count kaç tweet çekilecek (varsayılan değerimiz ---> config.TWITTER_MAX_RESULTS config dosyasındaki değer).
+
+
+    # client nesnesi yok ise,twitter api client'ı yoksa, yani twitter’a bağlanamıyorsak — fonksiyon boş sonuç döndürür . döndürdüğümüz DataFrame'in iki sütunu vardır: text ve link.
+    if not client: return pd.DataFrame(columns=['text', 'link'])
+
+    # if client is None:
+        # return pd.DataFrame(columns=['text', 'link'])
+
+
+    # burası kullanıcı aranmasının – try/except yapısı
+    user_response = None
+    try:
+
+        print(f"Kullanıcı aranıyor: {username}")
+        # kullanıcıyı bul (ID'sini almak için) , çünkü tweet çekebilmek için önce user_id gerekir.
+        user_response = client.get_user(username=username)  # client.get_user() ---> twitter kullanıcı bilgilerini döndürür.
+
+
+    # rate limit hatası yakalama ---> twitter api aynı anda çok fazla istek yapılırsa 429 TooManyRequests döndürür.
+    except tweepy.errors.TooManyRequests:
+
+        st.error(
+            "⏳ Twitter API kullanım limitine takıldınız (Kullanıcı Arama). Lütfen ~15 dakika sonra tekrar deneyin.")
+        print("❌ Rate limit (Kullanıcı Arama).")
+        return pd.DataFrame(columns=['text', 'link']) # Fonksiyon boş bir DataFrame döndürür. sütunları text ve link dir
+
+    # burasıda diğer tüm hataları yakalamak için ---> api bağlantı hatası, internet kopması, yanlış kullanıcı adı gibi türevleri hatalar için
+    except Exception as e:
+        print(f"❌ Kullanıcı aranırken HATA: {e}")
+        return pd.DataFrame(columns=['text', 'link']) # # Fonksiyon boş bir DataFrame döndürür.sütunları text ve link dir
+
+
+    # Kullanıcı bulunamadı ise bunun kontrolünü yapıyoruz
+    if not user_response or not user_response.data: # twitter api’ye kullanıcı adıyla sorgu gönderir , karşılık olarak bir "response" (yanıt) objesi döner --> bu dönen obje user_response içine kaydedilir.
+
+# user_response genelde şöyle bir yapıdadır yani içinde data --> kullanıcı bilgileri (ID, isim, kullanıcı adı…) , errors ---> kullanıcı bulunamadıysa vb. , meta → ek bilgiler
+
+    #    user_response = {
+    #        data: {...Kullanıcı bilgileri...},
+    #        errors: [...hatalar...],
+    #        meta: {...ek bilgiler...}
+    #    }
+
+# peki user_response.data nedir , burası kullanıcının gerçek bilgilerini taşır. ---> user_response.data.id , user_response.data.name , user_response.data.username ---- eğer kullanıcı bulunamazsa user_response.data = None olur.
+# işte bu yüzden not user_response ---> api çağrısı başarısız olduysa ve not user_response.data kullanıcı bulunmadıysa (data = None gelir).
+
+        print(f"❌ Kullanıcı '{username}' bulunamadı.")
+        return pd.DataFrame(columns=['text', 'link']) # fonksiyon boş DataFrame döndürür.
+
+    user_id = user_response.data.id # işte burada kullanıcının id değeri alınır. tweet çekerken id kullanılır (username değil).
+    username_for_link = username # username_for_link tweet linki oluşturabilmek için saklıyoruz değişkende tutuyoruz.
+    print(f"✅ Kullanıcı bulundu: ID={user_id}, Ad={username_for_link}. Tweetler çekiliyor...")
+
+   # burası tweetleri çekme aşaması
+    try:
+        # Kullanıcının tweetlerini çekme işlemi ---> bu fonksiyon kullanıcının tweetlerini alır.
+        # Parametreler:  id=user_id --> tweetleri hangi kullanıcıdan çekeceğiz , max_results=count → kaç adet tweet istiyoruz , exclude=['retweets','replies'] --> sadece orijinal tweetler , tweet_fields=['id','text'] --> tweet id ve metni gelsin
+
+        response = client.get_users_tweets(
+            id=user_id,
+            max_results=count,
+            exclude=['retweets', 'replies'],  # retweet ve yanıtları(replies) hariç tut diyoruz
+            tweet_fields=['id', 'text']
+        )
+
+        # tweet listesine dönüştürme
+        data = []
+        if response and response.data: # eğer tweet varsa:
+            print(f"✅ {len(response.data)} adet tweet verisi bulundu.")
+            for t in response.data: # her tweet için , tweet metnini (t.text) , tweet linkini (https://twitter.com/username/status/id) ---> bu iki değeri bir dictionary içine koyar.
+                # link oluşturma
+                link = f"https://twitter.com/{username_for_link}/status/{t.id}"
+                data.append({'text': t.text, 'link': link})
+
+        else:
+            print("❌ Kullanıcı tweet yanıtı 'data' içermiyor veya boş.")
+
+        return pd.DataFrame(data, columns=['text', 'link']) # DataFrame döndürme ,Tweet metinleri --> text , tweet url'leri --> link , bu yapı Streamlit’te tablo şeklinde gösterilebilir.
+
+    except tweepy.errors.TooManyRequests: # tweet çekerken rate limit hatası --> tweet çekme sırasında limit aşılırsa
+
+        st.error("⏳ Twitter API kullanım limitine takıldınız (Tweet Çekme). Lütfen ~15 dakika sonra tekrar deneyin.")
+        print("❌ Rate limit (Tweet Çekme).")
+        return pd.DataFrame(columns=['text', 'link'])
+
+    # ve tüm diğer hatalar için
+    except Exception as e:
+
+        print(f"❌ Kullanıcı tweetleri çekilirken HATA: {e}")
+        return pd.DataFrame(columns=['text', 'link'])
+
+# özet ile bu yazdığımız fonksiyon ile ne yaptık
+# 1-kullanıcıyı api ile arar , 2-kullanıcı id’sini alır , 3-rate limit ve api hatalarını yakalar , 4-kullanıcının tweetlerini çeker
+# 5-retweet ve reply’ları hariç tutar , 6-tweet metinlerini ve linklerini bir listeye kaydeder , 7-listeyi DataFrame olarak döner
+
+
+
+
+
+
+
+
 def _fetch_tweets_by_hashtag(hashtag_or_query, count=config.TWITTER_MAX_RESULTS): # Parametrelerimiz hashtag_or_query (kullanıcının yazdığı kelime) ve count (kaç tweet çekileceği).
     if not client: return pd.DataFrame(columns=['text', 'link'])
+
+    # if not client:
+    #   return pd.DataFrame(columns=['text', 'link'])
+
 
     query_text = ""
 
@@ -112,15 +224,24 @@ def _fetch_tweets_by_hashtag(hashtag_or_query, count=config.TWITTER_MAX_RESULTS)
 
 # --- Ana Çağrı Fonksiyonumuz ---
 
-# Bu fonksiyon twitter’dan tweet çekmek için ortak bir kapımız (ana fonksiyonumuz).
-def fetch_tweets(query, search_type='hashtag', count=config.TWITTER_MAX_RESULTS): # query → aranan metin veya hashtag (#python gibi) , search_type='hashtag' → varsayılan olarak hashtag araması çalışıyor  , count=config.TWITTER_MAX_RESULTS → çekilecek tweet sayısı
+# Bu fonksiyon twitter’dan tweet çekmek için ortak bir kapımız (ana fonksiyonumuz).arama tipine göre (hashtag veya username) doğru fonksiyonu çağırır.
+def fetch_tweets(query, search_type='hashtag', count=config.TWITTER_MAX_RESULTS): # query ---> aranan metin veya hashtag (#python gibi) , search_type="hashtag" veya "username" , count=config.TWITTER_MAX_RESULTS → çekilecek maksimum tweet sayısı
     print(f"--- Twitter API İsteği Başlatılıyor ---")
-    df = pd.DataFrame(columns=['text', 'link']) # boş bir DataFrame oluşturuyor -- eğer ileride bir hata olursa en azından boş bir DataFrame döndürücek bize. sütunlarımız text ---> tweet metni , link ---> tweet linki
+    # df = pd.DataFrame(columns=['text', 'link']) # boş bir DataFrame oluşturuyor -- eğer ileride bir hata olursa en azından boş bir DataFrame döndürücek bize. sütunlarımız text ---> tweet metni , link ---> tweet linki
 
     if search_type == 'hashtag': # arama türü hashtag mi kontrol ediyor , eğer arama tipi hashtag ise, hashtag arama fonksiyonunu çağırır(_fetch_tweets_by_hashtag)
-        df = _fetch_tweets_by_hashtag(hashtag_or_query=query, count=count)
+        return _fetch_tweets_by_hashtag(query, count)
 
-            # bu fonksiyon:
+    elif search_type == 'username': # arama türü username mi kontrol ediyor , eğer arama tipi username ise, username arama fonksiyonunu çağırır(_fetch_tweets_by_user)
+        return _fetch_tweets_by_user(query, count)
+
+    else: # Eğer search_type geçerli değil ise uyarı verir
+        print(f"⚠️ Geçersiz arama tipi: {search_type}")
+        return pd.DataFrame(columns=['text', 'link'])
+
+
+
+            # bu fonksiyon(_fetch_tweets_by_hashtag):
 
                     # twitter’a api isteği gönderir
                     # tweetleri toplar
@@ -129,11 +250,3 @@ def fetch_tweets(query, search_type='hashtag', count=config.TWITTER_MAX_RESULTS)
                     # DataFrame döndürür
 
             # Sonuç olarak df artık gerçek tweetlerle dolmuş olur.
-
-
-    else: # Eğer search_type hashtag değil ise uyarı verir
-
-        print(f"⚠️ Arama tipi '{search_type}' henüz aktif değil.")
-
-    print(f"--- İstek Tamamlandı ---")
-    return df # ister tweet listesi dolu olsun, ister boş — fonksiyon her zaman bir DataFrame döndürür.

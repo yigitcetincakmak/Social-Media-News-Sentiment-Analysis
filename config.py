@@ -14,3 +14,4 @@ TWITTER_API_SECRET_KEY = "..."          # uygulama gizli anahtarı  --->  “ben
 TWITTER_ACCESS_TOKEN = "..."            # kullanıcı yetkisi  --->  “kullanıcının hesabını kullanıyorum”
 TWITTER_ACCESS_TOKEN_SECRET = "..."     # kullanıcı gizli anahtarı  --->  “bu kullanıcı gerçekten benim”
 TWITTER_BEARER_TOKEN = "..."            # okuma izni  --->  “tweetleri okuyabilirim”
+

@@ -60,15 +60,31 @@ with st.sidebar:
     )
 
     query = "" # query sorgu demek başlangıçta boş
+    search_type_api = "hashtag"  # Varsayılan olarak olsun
+
 
     if source_option == "Twitter":
         st.subheader("Twitter Ayarları") # eğer kullanıcı twitter seçti ise alt başlık yazılır:
 
+        # --- YENİ: Arama Tipi Seçimi ---
+        search_type_display = st.selectbox(
+            "Arama Tipini Seçin:",
+            ("Anahtar Kelime / Hashtag", "Kullanıcı Adı")
+        )
+
+        # etiketi seçime göre değiştir
+        label_text = f"Aranacak Metin {'(#teknofest gibi)' if search_type_display == 'Anahtar Kelime / Hashtag' else '(@ olmadan)'}"
+
+
+
+
         query = st.text_input(  # kullanıcıdan hashtag/kelime girmesi istenir ve sonuç query değişkenine aktarılır.
-            "Aranacak Hashtag / Kelime:",
+            label_text,
             placeholder="Örn: teknofest"
         )
-        st.caption("Not: Sadece Hashtag araması aktiftir.") # küçük açıklama notu,soluk renkte bu açıklama görünür
+
+        # API'ye gönderilecek tipi belirle
+        search_type_api = 'username' if search_type_display == 'Kullanıcı Adı' else 'hashtag'
 
     elif source_option == "Manuel Test": # eğer kullanıcı "Manuel Test" seçerse bu blok çalışır.
          # Test için metin girişi
@@ -108,7 +124,7 @@ if analyze_button:
 
         with st.spinner("Twitter'dan veriler çekiliyor..."):  # kullanıcı beklemesin diye animasyonlu “yükleniyor” göstergesi açılıyor.
             # data_collector modülünü çağırıyoruz , twitter’dan tweetleri çeken fonksiyonu çağırıyoruz
-            df = data_collector.fetch_tweets(query, search_type='hashtag', count=config.TWITTER_MAX_RESULTS)
+            df = data_collector.fetch_tweets(query, search_type=search_type_api, count=config.TWITTER_MAX_RESULTS)
 
             # sonucunda df artık tweet metinleri + linkler içeren bir DataFrame olur.
 
@@ -143,52 +159,60 @@ if analyze_button:
 
 
     # 4.adım sonuçları gösterme , görselleştirme(Visualization)
-    col1, col2 = st.columns([2, 1])
+          col1, col2 = st.columns([2, 1])
     # Ekranı ikiye bölüyoruz. sol kısım daha geniş (grafik için) , sağ kısım daha dar (sayılar için)
     # [2, 1] oranı şunu demek: Sol sütun "col1" ekranın 2/3'ünü, Sağ sütun "col2" 1/3'ünü kaplasın.
     # Grafiğe daha fazla yer ayırmak için bunu yaptık.
 
-    # Sol sütun grafik alanı için
-    with col1:
-        st.write("#### Duygu Dağılımı")
-        # visualizer modülümüzdeki fonksiyonla pasta grafiğini (fig) oluşturuyoruz.
-        fig = visualizer.create_sentiment_pie_chart(analysis_counts)
+          # Sol sütun grafik alanı için
+          with col1:
+                st.write("#### Duygu Dağılımı")
+                # visualizer modülümüzdeki fonksiyonla pasta grafiğini (fig) oluşturuyoruz.
+                fig = visualizer.create_sentiment_pie_chart(analysis_counts)
 
-        if fig:   # Eğer grafik başarıyla oluştuysa ekrana ver.
-            st.plotly_chart(fig, use_container_width=True)
-            # burada --> use_container_width=True: Grafiği sütunun genişliğine tam sığdır.
+                if fig:   # Eğer grafik başarıyla oluştuysa ekrana ver.
+                    st.plotly_chart(fig, use_container_width=True)
+                    # burada --> use_container_width=True: Grafiği sütunun genişliğine tam sığdır.
 
-        else: # Eğer veri yoksa (hepsi 0 ise) bilgi verir.
-            st.info("Veri yok.")
+                else: # Eğer veri yoksa (hepsi 0 ise) bilgi verir.
+                    st.info("Veri yok.")
 
-    # Sağ sütun sayısal sonuçlarımızın alanı
-    with col2:
-        # Sayıları Gösterme
+          # Sağ sütun sayısal sonuçlarımızın alanı
+          with col2:
+          # Sayıları Gösterme
 
-        # Metrikleri (Kutucuk içindeki büyük sayılar) gösteriyoruz.
-        # .get('positive', 0) -> Eğer 'positive' anahtarı yoksa hata verme, 0 yaz. --- .get ---> eğer anahtar yoksa 0 yaz.
+          # Metrikleri (Kutucuk içindeki büyük sayılar) gösteriyoruz.
+          # .get('positive', 0) -> Eğer 'positive' anahtarı yoksa hata verme, 0 yaz. --- .get ---> eğer anahtar yoksa 0 yaz.
 
         # st.metric() streamlit’te sayısal özet kutusu göstermeye yarayan bir fonksiyon."Toplam" Metric kutusunun başlığı.Yani kutuda üstte “Toplam” yazacak.
         # analysis_counts sözlük yapısıdır
 
-       #        analysis_counts = {
-       #               'positive': 4,
-       #               'negative': 1,
-       #               'neutral': 3
-       #        }
+        #        analysis_counts = {
+        #               'positive': 4,
+        #               'negative': 1,
+        #               'neutral': 3
+        #        }
 
         # analysis_counts.values() ---> [4, 1, 3] değerlerini döndürür. Tüm değerleri toplar ---> 4 + 1 + 3 = 8 --- başlık Toplam olur analiz edilen toplam metin sayısıdır
 
-        st.write("#### Özet")
-        st.metric("Toplam", sum(analysis_counts.values()))
-        st.metric("Pozitif", analysis_counts.get('positive', 0))
-        st.metric("Negatif", analysis_counts.get('negative', 0))
-        st.metric("Nötr", analysis_counts.get('neutral', 0))
+                st.write("#### Özet")
+                st.metric("Toplam", sum(analysis_counts.values()))
+                st.metric("Pozitif", analysis_counts.get('positive', 0),delta=analysis_counts.get('positive', 0), delta_color="normal")
+                st.metric("Negatif", analysis_counts.get('negative', 0),delta=-1*analysis_counts.get('negative', 0), delta_color="normal")
+                st.metric("Nötr", analysis_counts.get('neutral', 0),delta=0, delta_color="off")
+
+
+# delta = önceki değere göre değişim pozitif(+) bir değer verirsem yeşil ok negatif(-) bir değer verirsem kırmızı ok 0 verirsem ok olmaz
+# streamlit’in st.metric() bileşeni ile metrik kutuları (istatistik kartları) oluşturuyor.
+# burada mesela ilk metrikte label: "Toplam"  ve  value: tüm sentiment sayılarını topluyor
+# mesela pozitif tweet sayısı 2.metrikte  value: pozitif tweet sayısı , delta: pozitif tweet sayısını tekrar veriyor --> yani değişim + değer kadar gösterilir , delta_color="normal" ise pozitif delta --> yeşil ok ve negatif delta --> kırmızı ok
+# negatif tweet için delta negatif sayı çünkü -1 ile çapılıyor,delta hep negatif olur bu da kırmızı ok gösterir -- negatif değerlendirme sayıları kötü sonuç gibi gösterilmek istendiği için
+# mesela nötr tweet delta 0 --> değişim yok delta color = off ok simgesi gizleniyor
 
     # 5.adım Detaylı veri gösterimi
-    st.markdown("---") # Araya bir ayırıcı çizgi çekiyoruz
-    with st.expander("📝 Detaylı Veriyi Gör"): # st.expander: Açılıp Kapanabilen bir kutu oluşturuyoruz.Sayfayı kalabalık göstermemek için tabloyu varsayılan olarak gizli tutuyoruz.Kullanıcı isterse tıklayıp detayları görebilir.
-        st.dataframe(processed_df) # # İşlenmiş ve analiz edilmiş son tabloyu göster.
+          st.markdown("---") # Araya bir ayırıcı çizgi çekiyoruz
+          with st.expander("📝 Detaylı Veriyi Gör"): # st.expander: Açılıp Kapanabilen bir kutu oluşturuyoruz.Sayfayı kalabalık göstermemek için tabloyu varsayılan olarak gizli tutuyoruz.Kullanıcı isterse tıklayıp detayları görebilir.
+                st.dataframe(processed_df) # İşlenmiş ve analiz edilmiş son tabloyu göster.
 
 
 
