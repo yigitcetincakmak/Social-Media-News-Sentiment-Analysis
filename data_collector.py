@@ -3,6 +3,8 @@ import pandas as pd
 import config # api anahtarlarını sakladığımız dosya
 import streamlit as st
 
+import feedparser           # RSS okumak için
+import requests             # Web isteği göndermek için
 
 
 # --- Tweepy Client ---
@@ -250,3 +252,136 @@ def fetch_tweets(query, search_type='hashtag', count=config.TWITTER_MAX_RESULTS)
                     # DataFrame döndürür
 
             # Sonuç olarak df artık gerçek tweetlerle dolmuş olur.
+
+
+
+
+
+
+
+
+# ==========================================
+# BÖLÜM 2: HABER SİTELERİ (RSS) FONKSİYONLARI
+# ==========================================
+
+
+
+# web siteleri, dışarıdan gelen isteklere bakar , eğer isteği bir bot yaptıysa çoğu site engeller.
+# header tarayıcı gibi görünmek ne demektarayıcı gibi görünmek için gerekli başlıklarımız , bunlar tarayıcı gibi görünmek için HTTP header’ları (çünkü bazı siteler botları engeller)
+# bazı siteler botlardan gelen istekleri engeller.biz de kendimizi gerçek bir tarayıcıymış gibi gösteriyoruz.
+# Parametrelerimiz User-Agent --> Tarayıcının kimliği , burada Chrome 118 , Windows 10 gibi görünüyor. Accept --> tarayıcının kabul ettiği içerik türleri.“HTML, XML, resim, tüm veri türleri olabilir” gibi.
+
+
+BROWSER_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+}
+
+# burada User-Agent nedir --> tarayıcının kimlik bilgisi , Chrome açtığında Chrome kendini siteye şu şekilde tanıtır  User-Agent: Mozilla/5.0 ... , biz de bu kodda kendimizi gerçek bir tarayıcıymış gibi gösteriyoruz , bu yüzden siteler bizi engellemiyor.
+
+
+
+
+
+
+
+
+# burada fonksiyonumuz parametreleri --> site_key config’deki haber sitesinin anahtar adı ,sitenin adı yani  (örn: "bbc", "trthaber") , category_key --> site içerisindeki kategori (örn: "teknoloji", "spor") , count	kaç haber çekileceği (default değerimiz kullanıcıya bağlı değil --> config.NEWS_MAX_RESULTS)
+def fetch_news_headlines(site_key, category_key, count=config.NEWS_MAX_RESULTS):
+    """
+    Belirtilen sitenin belirtilen kategorisindeki RSS beslemesini çeker.
+    """
+    # config kontrolümüz , girilen site config.NEWS_SITES içinde var mı kontrol edilir , site içinde kategori var mı bakılır.eğer yok ise hata verir boş DataFrame döner --> çökmez , kullanıcı yanlış site adı girerse hata verir mesela bbc --> yerine bbcc gibi
+    if site_key not in config.NEWS_SITES or category_key not in config.NEWS_SITES[site_key]:
+
+        print(f"Hata: '{site_key}' sitesinde '{category_key}' kategorisi bulunamadı.")
+        return pd.DataFrame(columns=['text', 'link'])
+
+    # RSS linkini çekme , RSS url sini alma --> RSS bir XML formatıdır.
+    # rss nedir dersek , haber sitelerinin içeriklerini XML formatında yayınladığı yapıdır. örneğin <title>Haber Başlığı</title> , <link>https://....</link> --> biz bu XML’i parse edip başlıkları çekiyoruz.
+    feed_url = config.NEWS_SITES[site_key][category_key] # config içerisindeki RSS URL’sine erişiyoruz.mesela https://www.bbc.com/news/rss.xml gibi
+    print(f"RSS beslemesi okunuyor: {feed_url}")
+
+    try:
+        # 1. Requests ile veriyi çek (Tarayıcı taklidi yaparak)
+        response = requests.get(feed_url, headers=BROWSER_HEADERS, timeout=10) # burada feed_url --> RSS linki , headers=BROWSER_HEADERS --> tarayıcı gibi görünmesini sağlar , timeout=10 --> 10 saniye içinde yanıt gelmezse hata ver
+        # mesela burada request kütüphanesi Python’un internetten veri çekmek için kullanılan paketidir --> parametrelerine bakalım --> feed_url çekilecek adres , headers=BROWSER_HEADERS --> tarayıcı gibi görünmek için , timeout=10 --> 10 saniyede yanıt gelmezse iptal
+
+
+        # burası HTTP Hata Kontrolü peki ne işe yarar --> 404, 500, 403 gibi hataları yakalar.
+        response.raise_for_status()  # hata varsa durdur (404, 500 vs.) , HTTP hata kodu (404, 500, 403) varsa programı durdurur , böylece yanlış veri işlenmez.
+
+        # 2. gelen veriyi feedparser ile işle , veriyi RSS formatında çözümleme
+        feed = feedparser.parse(response.content)  # ne yapıyor gelen XML RSS datasını Python tarafından okunabilir hale dönüştürüyor, feed.entries haber listesi demektir.
+
+        # burada feedparser kullanmışız feedparser RSS formatındaki XML’i okuyup Python objelerine çeviren bir kütüphane.
+
+        # mesela:
+        # feed.entries = haberlerin listesi
+        # feed.entries[0].title = ilk haber başlığı
+        # feed.entries[0].link = ilk haber linki
+        # ----> bu sebepten feedparser kullanıyoruz. requests XML’i sadece döndürür, işlemez.
+
+
+        # Hata kontrolü (Bozo bit)
+        if feed.bozo:
+            print(f"Uyarı: RSS okurken sorun oluştu (Bozo): {feed.bozo_exception}")
+
+        # feed bozo --> RSS dosyası hatalıysa true olur.burada “Bozo” kelimesi "problemli RSS" anlamında feedparser geliştirenlerin verdiği bir isim.
+        # örneğin eksik XML tag , hatalı karakterler ---> RSS bozuk olsa bile işlem durmaz, sadece uyarı verilir.
+
+
+
+
+        # haberleri listeye ekleme
+        data_list = []
+
+        # İstenilen sayı kadar haberi al , burada kullandığımız [:count] nedir bu bir slicing (dilimleme) dir.
+        for entry in feed.entries[:count]: # ilk count haber alıyoruz  mesela count = 5 --> ilk 5 haber , feed.entries RSS içindeki haberlerin listesi demektir mesela RSS içinde 10 tane haber olsun --> feed.entries = [entry1,entry2,entry3,....] .entries --> çoklu haber , her bir eleman bir "entry" (haber) objesidir.
+        # burada entry, RSS içindeki tek bir haber demektir , şunları içerir entry.title --> haber başlığı , entry.link --> haber linki , entry.summary --> haber özeti , entry.published --> tarih
+
+            if 'title' in entry and 'link' in entry: # entry’nin gerçekten başlık + link içerdiğini kontrol eder. ne yapar haber başlığı ve linki varsa listeye ekler.her eleman bir sözlüktür ---> {"text": "Haber başlığı", "link": "https://...."} gibi
+                data_list.append({'text': entry.title, 'link': entry.link})
+
+        if not data_list: # eğer data_list boşsa buda şu demek ---> eğer RSS içinden bir tane bile haber çekilememiş ise
+            print(f"Uyarı: Beslemeden hiç haber başlığı bulunamadı.")
+
+        return pd.DataFrame(data_list, columns=['text', 'link']) # columns=['text', 'link'] , birinci sütun adı --> text , ikinci sütun adı --> link , burası DataFrame’e dönüştürme
+
+    except Exception as e: # üstteki kodlarda herhangi bir hata olursa , Konsola yazar , streamlit ekranda gösterir , fonksiyon çökmez, boş tablo döndürür.
+        print(f"RSS beslemesi işlenirken bir hata oluştu: {e}")
+        st.error(f"{site_key} verisi çekilirken hata: {e}")
+        return pd.DataFrame(columns=['text', 'link'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
