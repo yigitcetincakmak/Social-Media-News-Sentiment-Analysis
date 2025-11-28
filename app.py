@@ -35,13 +35,20 @@ with st.spinner("Duygu analizi modeli yükleniyor..."):
     model = sentiment_analyzer.load_model()
 
 
-
+# --- Hafıza Temizleme Fonksiyonu ---
+# bu fonksiyon uygulamamızda daha önce bellekte tutulan verileri silerek hafızayı (session_state) temizler.çünkü streamlit her işlem arasında değişkenleri korur.
+def clear_results():
+    keys_to_delete = ["processed_df", "analysis_counts", "search_term"] # burada silinmesini istediğimiz anahtarları bir liste içinde topladık.
+    # burada processed_df --> işlenmiş veri çerçevesi (DataFrame) , analysis_counts --> analiz içinde hesaplanmış sayılar / kelime sayıları vb. , search_term --> Kullanıcının arama yaptığı kelime , bunlar Streamlit session_state içinde saklanan verilerdir.
+    for key in keys_to_delete: # bu for döngüsü listeyi sırayla döner
+        if key in st.session_state: del st.session_state[key] # bu satır şunu kontrol ediyor --> if key in st.session_state --> bu anahtar streamlit’in session_state'inde var mı ---- del st.session_state[key] --> session state’teki o anahtarı tamamen siler artık bellekte yer kaplamaz.bir sonraki işlemde eski veri karışıklık yapmaz.del ile silerek RAM’i temizliyorsun
+                                                                # eski verileri siler , RAM kullanımını azaltır
 
 
 
 # --- Arayüz Başlığımız ---
 st.title("📊 Sosyal Medya ve Haberler için Duygu Analizi")
-st.markdown("Bu uygulama, Twitter üzerinden alınan verileri analiz eder.")
+st.markdown("Bu uygulama, Twitter ve Haber Siteleri üzerinden alınan verileri analiz eder.")
 
 # burada title Ana Başlığımız  ,  markdown ile başlık altına bir açıklama metni ekliyoruz
 
@@ -56,35 +63,76 @@ with st.sidebar:
     # Veri Kaynağı Seçimi (Şimdilik Sadece Twitter ve Manuel Var)
     source_option = st.selectbox(
         "Veri Kaynağını Seçin:",
-        ("Twitter", "Manuel Test")
+        ("Twitter", "Haber Siteleri", "Manuel Test"),# veri kaynağı seçimine haber siteleri eklendi
+        key="source_option", # burada streamlit bileşenleri için benzersiz kimlik (unique key) verir.neden kullanırız session state içinde bu selectbox’ın değerini saklayabilmek için.
+                            # eğer key vermezsek aynı sayfada birden fazla selectbox varsa streamlit hata verebilir , değer session_state’te tutulmaz.
+        on_change=clear_results # bu parametre kullanıcı bu seçimi değiştirdiğinde hangi fonksiyon çalıştırılsın sorusunun cevabıdır ,
+                        # burada clear_results fonksiyonu çağrılır , yani kullanıcı Twitter --> Haber Siteleri diye seçimi değiştirdiğinde --> hafıza temizlenir , önceki arama / analiz sonuçları silinir , yeni seçime göre taze bir başlangıç yapılır.
     )
-
-    query = "" # query sorgu demek başlangıçta boş
-    search_type_api = "hashtag"  # Varsayılan olarak olsun
+    st.markdown("---")
 
 
-    if source_option == "Twitter":
+
+
+    query = ""   # query sorgu demek başlangıçta boş , kullanıcının gireceği arama metnini tutar.
+    site_key = ""  # kullanıcının seçtiği haber sitesinin adını tutar
+    category_key = ""  # seçilen sitenin hangi kategorisinin seçildiğini tutar.
+
+    # bu değişkenler başta boş string olarak başlatılır ki aşağıdaki seçeneklerde doldurulabilsin.
+
+
+
+    if source_option == "Twitter": # eğer kullanıcı twitter seçtiyse aşağıdaki kodlar çalışacak.
         st.subheader("Twitter Ayarları") # eğer kullanıcı twitter seçti ise alt başlık yazılır:
 
         # --- YENİ: Arama Tipi Seçimi ---
         search_type_display = st.selectbox(
             "Arama Tipini Seçin:",
-            ("Anahtar Kelime / Hashtag", "Kullanıcı Adı")
-        )
+            ("Anahtar Kelime / Hashtag", "Kullanıcı Adı"),key='search_type', on_change=clear_results
+        )#
 
-        # etiketi seçime göre değiştir
+
+        # etiketi seçime göre değiştir , eğer kullanıcı "Hashtag / Anahtar kelime" seçtiyse label --> "Aranacak Metin (#teknofest gibi)" , eğer "Kullanıcı Adı" seçtiyse label --> "Aranacak Metin (@ olmadan)" , bu dinamik bir etiket. kullanıcı ne seçerse ona uygun açıklama gösteriliyor.
         label_text = f"Aranacak Metin {'(#teknofest gibi)' if search_type_display == 'Anahtar Kelime / Hashtag' else '(@ olmadan)'}"
 
 
 
-
+        # burası arama metni girişi , kullanıcının yazdığı değer query değişkenine aktarılır.
         query = st.text_input(  # kullanıcıdan hashtag/kelime girmesi istenir ve sonuç query değişkenine aktarılır.
             label_text,
-            placeholder="Örn: teknofest"
+            placeholder="Örn: teknofest",
+            key="query",
+            on_change=clear_results
         )
 
-        # API'ye gönderilecek tipi belirle
-        search_type_api = 'username' if search_type_display == 'Kullanıcı Adı' else 'hashtag'
+        # API'ye gönderilecek tipi belirle , kullanıcı “Kullanıcı Adı” seçtiyse --> API’ye "username" gönderilir , diğer durumda --> "hashtag" gönderilir.
+        search_type_api = 'username' if search_type_display == 'Kullanıcı Adı' else 'hashtag'         # yani bu satır kullanıcı seçimlerini API’nin anlayacağı dile çevirir.
+
+
+    # Kullanıcı “Haber Siteleri” seçerse bu blok çalışır.
+    elif source_option == "Haber Siteleri":
+        st.subheader("Haber Sitesi Ayarları")
+
+        # 1. site seçimi , site seçme kutusu
+        site_key = st.selectbox(
+            "Haber Kaynağını Seçin:",
+            list(config.NEWS_SITES.keys()),  # config'deki site isimlerini getir , config.NEWS_SITES --> Python sözlüğümüzdü (dict) , .keys() --> sözlükteki site adlarını verir , "Sözcü", "Habertürk", "NTV" gibi ,kullanıcı seçim yapınca değer site_key değişkenine yazılır.
+            key="site_key",
+            on_change=clear_results
+        )
+
+        # 2. kategori seçimi (seçilen siteye göre değişir) burada seçilen siteye Göre kategori seçiyoruz Önemli bir yapı
+        if site_key:
+            category_key = st.selectbox(
+                "Kategori Seçin:",
+                list(config.NEWS_SITES[site_key].keys()),  # config.NEWS_SITES[site_key] --> seçilen sitenin kategorilerini verir , .keys() --> “Gündem”, “Spor”, “Dünya”, “Teknoloji” gibi kategorileri listeler. kısacası yani site_key = “NTV” seçilirse --> o sitenin kategorileri gösterilir.değer category_key değişkenine yazılır.
+                key="category_key", # streamlit tüm bileşenleri tanımak için bir şeye ihtiyaç duyar her widget'ın benzersiz (unique) bir adı olmalı.key = widget'a verilen benzersiz kimliktir
+               # key olmazsa ne olur aynı sayfada birden fazla selectbox varsa karışır streamlit hangi selectbox’ın hangi değer olduğunu çözemeyebilir Streamlit şöyle diyecektir --> “Hangisi hangisi? Bu iki widget birbirine benziyor, ayırt edemiyorum.”
+
+                on_change=clear_results # burada on_change nedir , streamlit’te her kullanıcı etkileşimi (selectbox seçimi, text_input yazımı, radio değişimi…) bir olaydır.kullanıcı o widget’ın değerini değiştirdiği anda verilen fonksiyonu çalıştırır.yani kullanıcı seçim değiştirir --> streamlit otomatik olarak bir fonksiyon çağırır.
+            )
+
+
 
     elif source_option == "Manuel Test": # eğer kullanıcı "Manuel Test" seçerse bu blok çalışır.
          # Test için metin girişi
@@ -128,10 +176,37 @@ if analyze_button:
 
             # sonucunda df artık tweet metinleri + linkler içeren bir DataFrame olur.
 
+
+    # kullanıcı veri kaynağı olarak kullanıcı "Haber Siteleri" seçtiğinde bu blok çalışır.
+    elif source_option == "Haber Siteleri":
+        if not category_key: # Kullanıcı kategori seçti mi seçmedi mi bunu kontrol eder , category_key = kullanıcının seçtiği kategori --> "Gündem", "Spor", "Dünya" gibi ---> streamlit’te kategori seçim kutusunu doldurduğumuzda streamlit değeri st.session_state['category_key'] içine koyar.
+            st.warning("Lütfen bir kategori seçin.")
+            st.stop()
+        with st.spinner(f"{site_key} ({category_key}) haberleri çekiliyor..."): # bu satırda spinner bekleme animasyonu (loading spinner) açılır yani Yani kullanıcı şunu görür  meesela “NTV (Spor) haberleri çekiliyor…” , “Sözcü (Gündem) haberleri çekiliyor…” gibi , bu kullanıcıya programın donmadığını, arka planda veri çekildiğini ,işlemin sürdüğünü gösterir
+            # Haber çekme fonksiyonunu çağırıyoruz
+            df = data_collector.fetch_news_headlines(site_key, category_key, count=config.NEWS_MAX_RESULTS) # haber çeken fonksiyonu çağırıyoruz. bu fonksiyon RSS linkine gidip haber başlıklarını okuyor.sonuçları bir DataFrame olarak döndürüyor.
+            # burada parametrelerimiz site_key kullanıcının seçtiği site adı. mesela "NTV" , category_key seçtiği kategori. mesela "Dünya" , count maximum kaç haber alınsın mesela 20
+
+
     # Manuel Test seçilirse
     elif source_option == "Manuel Test":
 
         df = pd.DataFrame({'text': [user_input]}) # kullanıcının yazdığı tek bir cümleyi tek satırlık DataFrame’e çeviriyoruz , çünkü analiz sistemi DataFrame formatında çalışıyor.
+
+
+
+    # Arayüzde gösterilecek başlığı belirliyoruz , bu kısım sadece arayüzde kullanıcıya gösterilecek başlığı belirlemek için.
+    if source_option == "Twitter":
+            search_term = query # mesela twitter seçilirse kullanıcı "deprem" yazarsa , bunun gibi bir arama yaparsa   ekranda şöyle gösterilir Arama Terimi: deprem
+
+    elif source_option == "Haber Siteleri":
+            search_term = f"{site_key} - {category_key}" # haber siteleri seçilirse Bu iki değeri birleştirir site_key = "NTV" , category_key = "Spor" sonuç olarak ---> Arama Terimi: NTV - Spor
+
+    else:
+            search_term = "Manuel Metin" # Manuel Test seçilirse , yani kullanıcı kendi cümlesini yazıyorsa sabit bir başlık gösterilir , Arama Terimi: Manuel Metin
+
+    # 4 adımda görselleştirmede "search_term" değişkenini header olarak kullanıyoruz
+
 
 
 
@@ -159,6 +234,7 @@ if analyze_button:
 
 
     # 4.adım sonuçları gösterme , görselleştirme(Visualization)
+          st.header(f"📈 Analiz Sonuçları: {search_term}")
           col1, col2 = st.columns([2, 1])
     # Ekranı ikiye bölüyoruz. sol kısım daha geniş (grafik için) , sağ kısım daha dar (sayılar için)
     # [2, 1] oranı şunu demek: Sol sütun "col1" ekranın 2/3'ünü, Sağ sütun "col2" 1/3'ünü kaplasın.
@@ -212,6 +288,19 @@ if analyze_button:
     # 5.adım Detaylı veri gösterimi
           st.markdown("---") # Araya bir ayırıcı çizgi çekiyoruz
           with st.expander("📝 Detaylı Veriyi Gör"): # st.expander: Açılıp Kapanabilen bir kutu oluşturuyoruz.Sayfayı kalabalık göstermemek için tabloyu varsayılan olarak gizli tutuyoruz.Kullanıcı isterse tıklayıp detayları görebilir.
+              # Link sütunu varsa göster, yoksa gösterme
+              if 'link' in processed_df.columns: # 'link' sütunu var mı diye kontrol ediyoruz Eğer processed_df içinde bir link sütunu varsa, tabloyu 3 sütun ile göster ---> text, Duygu Durumu, link , ama link sütunu yoksa else blogunda verdiğimiz
+                  st.dataframe(
+                      processed_df[['text', 'Duygu Durumu', 'link']], # tabloyu sadece istediğin sütunlarla gösteriyoruz , yani dataframe’in içindeki tüm sütunları istemiyorum , tabloyu sadeleştirmiş oluyoruz
+
+                      column_config={
+                          "link": st.column_config.LinkColumn("Haber Linki")  # burada column_config kullanmışız ne işe yarıyor , streamlit’te tabloyu gösterirken belirli sütunlara özel davranış tanımlamayı sağlar.tabloyu gösterirken bir sütunu link, image, number, progress bar gibi özel formatta gösterebilirsin.
+                            # st.column_config.LinkColumn  ise ---> Bu sütundaki değerleri tıklanabilir link yapar. ---> normalde bu link sadece düz metin olurdu. ama LinkColumn sayesinde tıklanabilir hale geliyor.
+                            # biz burada column_config={} yapısnda kullanmışız , tablo gösterilirken "link" sütunu Haber Linki başlığıyla gözüksün.ve içindeki URL’ler tıklanabilir link olsun.
+                      }
+                  )
+
+              else:
                 st.dataframe(processed_df) # İşlenmiş ve analiz edilmiş son tabloyu göster.
 
 
