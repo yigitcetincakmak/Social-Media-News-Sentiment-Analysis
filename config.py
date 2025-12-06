@@ -5,7 +5,7 @@ MODEL_NAME = "savasy/bert-base-turkish-sentiment-cased"
 # veri limitimiz
 TWITTER_MAX_RESULTS = 10
 NEWS_MAX_RESULTS = 20
-
+YOUTUBE_MAX_RESULTS = 30
 
 
 # twitter developer platform dan aldığımız anahtarlarımız
@@ -17,6 +17,9 @@ TWITTER_ACCESS_TOKEN = "..."            # kullanıcı yetkisi  --->  “kullanı
 TWITTER_ACCESS_TOKEN_SECRET = "..."     # kullanıcı gizli anahtarı  --->  “bu kullanıcı gerçekten benim”
 TWITTER_BEARER_TOKEN = "..."            # okuma izni  --->  “tweetleri okuyabilirim”
 
+
+# --- YOUTUBE API AYARI ---
+YOUTUBE_API_KEY = ""
 
 
 

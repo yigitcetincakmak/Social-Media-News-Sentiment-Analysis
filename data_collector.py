@@ -7,6 +7,24 @@ import feedparser           # RSS okumak için
 import requests             # Web isteği göndermek için
 
 
+
+from googleapiclient.discovery import build #Bu satır, Google’ın resmi Python API istemcisinden (google-api-python-client) build fonksiyonunu içeri aktarır.build youtube api bağlantısı kurar, api isteklerini yapmanı sağlar
+# build Nedir? build Google api’lerine bağlanmak için kullanılan bir istek oluşturucu (service builder) fonksiyonudur.
+# Bu fonksiyon: YouTube API’ye bağlanmanı API anahtarını kullanmanı videos(), commentThreads(), search() gibi endpoint’lere erişmeni API istekleri yapmanı sağlar.
+# mesela biz aşağıda oluşturduk , bu kod: youtube isminde bir servis nesnesi oluşturur bu nesneyle youtube üzerinde istekler yapılabilir
+# youtube = build("youtube", "v3", developerKey=config.YOUTUBE_API_KEY)
+
+
+
+from googleapiclient.errors import HttpError #Google API istemcisinin hata sınıfı HttpErrorı içeri aktarır.
+# HttpError Nedir ? --> youtube api isteğin başarısız olursa Google tarafından fırlatılan bir hatadır.
+# Örnek hata durumları: api key yanlış --> 401  ,  Kota doldu --> 403  , Video bulunamadı --> 404  , Yorumlar kapalı --> 403  , Google sunucu hatası --> 500  Bu hataları özel olarak yakalayabiliyoruz:
+
+
+import re # Regex (video id ayıklamak için), re --> “regular expressions” Bu kütüphane: metin arama , metin ayıklama (extract) , desen eşleme (pattern matching) , işleri yapmak için kullanılır. youtube URL’den video id çekmek için kullandık.
+
+
+
 # --- Tweepy Client ---
 try:
     client = tweepy.Client(bearer_token=config.TWITTER_BEARER_TOKEN) # client değişkeni ile twitter'ın kapısını çalıyoruz.client aslında bizim nesnemiz
@@ -336,6 +354,7 @@ def fetch_news_headlines(site_key, category_key, count=config.NEWS_MAX_RESULTS):
         # haberleri listeye ekleme
         data_list = []
 
+        # entries[:count] --> listenin ilk count kadar elemanını al demektir.türü listedir
         # İstenilen sayı kadar haberi al , burada kullandığımız [:count] nedir bu bir slicing (dilimleme) dir.
         for entry in feed.entries[:count]: # ilk count haber alıyoruz  mesela count = 5 --> ilk 5 haber , feed.entries RSS içindeki haberlerin listesi demektir mesela RSS içinde 10 tane haber olsun --> feed.entries = [entry1,entry2,entry3,....] .entries --> çoklu haber , her bir eleman bir "entry" (haber) objesidir.
         # burada entry, RSS içindeki tek bir haber demektir , şunları içerir entry.title --> haber başlığı , entry.link --> haber linki , entry.summary --> haber özeti , entry.published --> tarih
@@ -358,26 +377,200 @@ def fetch_news_headlines(site_key, category_key, count=config.NEWS_MAX_RESULTS):
 
 
 
+# ==========================================
+# BÖLÜM 3: YOUTUBE FONKSİYONLARI
+# ==========================================
+
+# fonksiyon adında da görüldüğü gibi fonksiyon bir argüman alır -->  url . ama kullanıcının girdiği şey bir URL ya da doğrudan video ID'si olabilir.
+def get_video_id_from_url(url):
+    """ YouTube URL'sinden video ID'sini çıkarır. Fonksiyon tek bir işi yapacak — parametre olarak verilen değerden YouTube video ID'sini çıkarmak."""
+    if not isinstance(url, str): return None # Güvenlik kontrolü girilen url string değilse (None, int, list vs.) fonksiyon None döndürür.
+
+    '''
+        burada isinstance(obj, type) ne yapar
+        isinstance(url, str) ifadesi, url değişkeninin gerçekten bir string (str) olup olmadığını kontrol ediyor.
+        isinstance bir Python yerleşik fonksiyonudur ve tip kontrolü için kullanılır.
+        Eğer url string değilse (None, int, list, vs.), fonksiyon None döndürür.
+        Neden gerekli: Regex (re.search) gibi string üzerinde çalışan işlemleri uygulamadan önce tip güvenliği sağlıyor; hataları (ör. 'NoneType' object has no attribute '...') önler.
+    '''
+
+    # Olası URL formatları
+    # burada patterns regex(düzenli ifade) desenlerinin listesi , biz iki yaygın YouTube ID formatını hedefliyoruz.neden iki desen youtube URL'leri birkaç farklı formatta gelebilir
+    # mesela standart --> https://www.youtube.com/watch?v=VIDEO_ID  , embed ve başka formatlar --> https://www.youtube.com/embed/VIDEO_ID  veya  https://m.youtube.com/watch?v=VIDEO_ID  , kısa link --> https://youtu.be/VIDEO_ID   şeklinde
+
+# burada patterns desenler listemiz var . listede regex (düzenli ifade) desenleri var. Her desen farklı URL formatını yakalamaya çalışır.
+# Regex (düzenli ifade) Metin içinde belirli kalıpları aramak için kullanılan güçlü bir araçtır. Python'da re modülü ile kullanılır.
+
+    patterns = [
+        r"(?:v=|\/)([0-9A-Za-z_-]{11}).*",  # Standart ve embed
+        r"youtu\.be\/([0-9A-Za-z_-]{11})"  # Kısa linkler
+    ]
+
+# Örnekler (girdi --> beklenen çıktı)
+    # "https://www.youtube.com/watch?v=abcDEfGhI12" → "abcDEfGhI12"
+    # "https://youtu.be/abcDEfGhI12" → "abcDEfGhI12"
+    # "https://www.youtube.com/embed/abcDEfGhI12?start=10" → "abcDEfGhI12"
+    # "abcDEfGhI12" → "abcDEfGhI12" (doğrudan ID verilmişse)
+    # "not a youtube url" → None
+
+
+# Hazırlanan desenlerin her birini sırayla denemek için döngü başlatıyoruz.
+# bu döngünün nedeni ne farklı url formatlarından hangisinin geçerli olduğunu bulup, ilk eşleşen desenle id'yi almak için.
+# şimdi burada re.search , python'un re modülünden gelen bir fonksiyon. pattern desenini url içinde arar. eğer herhangi bir yerde desenle eşleşme varsa bir match nesnesi döndürür; yoksa none döner.
+# re.search ile re.match arasındaki fark: re.match sadece stringin başından eşleştirme yapar; re.search stringin her yerinde arama yapar. Burada re.search tercih ettik çünkü parametrede v= sorgu parametresi URL sonunda veya ortasında olabilir.
+
+
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match: # eğer eşleşme bulunduysa (match None değilse) iç bloğa girer
+            return match.group(1)  # burada match.group(n) var nedir bu group(1) ilk capturing grupun yakaladığı değeri döndürür. Bizim desenlerde ID ([0-9A-Za-z_-]{11}) ile birinci capturing grup olduğu için group(1) video ID'sini verir.Fonksiyonun amacı bu ID'yi geri döndürmek
+                                    # match nesnesi .group(0) tamamını, .group(1) ilk yakalanan parça vb. verir.
+
+    # eğer url parametresi tek başına 11 karakter uzunluğundaysa ve http ile başlamıyorsa
+    # (yani muhtemelen zaten bir video id'si verilmiş) fonksiyon bu durumda url'yi id olarak kabul edip döndürür.
+    # çünkü bazı kullanımlar doğrudan videoid parametresi verir — fonksiyonu daha esnek yapmak için bu durum da kontrol edildi.
+    if len(url) == 11 and not url.startswith('http'):
+        return url # Direkt ID olarak verilen 11 karakteri geri döndürür.
+
+    return None # Hiçbir desen eşleşmemişse ve yukarıdaki doğrudan ID kontrolü de geçerli değilse, fonksiyon None döndürür.çünkü id bulunamadığını belirtmek için.
 
 
 
 
+# Bu fonksiyonun amacı:
+# youtube api kullanarak bir video id’den:Video başlığını almak ,yorumları almak,bunları bir DataFrame içinde döndürmek,Yani dönüş:(DataFrame, video_title) şeklinde
+def fetch_youtube_comments(video_id, count=config.YOUTUBE_MAX_RESULTS):   # burada video_id hedef videonun  idsi (11 karakter veya None) , count --> kaç yorum isteniyor. config.YOUTUBE_MAX_RESULTS uygulamanın genel ayarından geliyor.
+    """
+    Belirtilen YouTube videosundan yorumları ve başlığı çeker.
+    Dönen Değer: (DataFrame, video_basligi)
+    """
+    comments_list = [] # Buradaki amacımız yorumları tek tek topladıktan sonra liste hâlinde saklamak; daha sonra DataFrame’e çevirmek.
+    video_title = f"Video ID: {video_id}"  # eğer api başlık getiremezse en azından kullanıcı ekranda bir şey görsün diye default başlık atanıyor.
+
+    # hasattr(obj, 'attribute') ne demek?
+    # Bir objenin (class, modul, instance fark etmez) içinde belirtilen isimde bir değişken var mı diye kontrol eder.
+    # hasattr(config, 'YOUTUBE_API_KEY') --> config dosyasında YOUTUBE_API_KEY isminde şey var mı?
+    if not hasattr(config, 'YOUTUBE_API_KEY') or not config.YOUTUBE_API_KEY:
+        st.error("config.py dosyasında YOUTUBE_API_KEY bulunamadı.")
+        return pd.DataFrame(columns=['text', 'link']), video_title # eğer yoksa boş bir DataFrame ve video_title döndürür
+
+    try:# asıl api işlemlerimiz try bloğumuz
+
+        # şimdi burada build nedir? Google API Client Library’nin fonksiyonudur. Google’ın YouTube API’sine bağlanmamızı sağlar
+        # Parametrelerimiz:
+        # "youtube" → bağlanmak istediğimiz servis
+        # "v3" → API versiyonu
+        # developerKey= → Youtube API Key
+        # Dönen  şey  Bir  YouTube  servis objesi -->  içinde tüm metodlar bulunur:  youtube.videos()  , youtube.commentThreads()  ,  youtube.channels() , youtube.search() vb.
+
+        youtube = build("youtube", "v3", developerKey=config.YOUTUBE_API_KEY)
+
+        # 1. Video Başlığını Çekme İşlemi
+        try:
+            # youtube.videos() nedir --> YouTube API’nin videos endpoint’i
+            # Bu endpoint "video ile ilgili her şeyi" getirir.
+            # Örneğin: title , description , channelTitle , tags , duration vb.
+
+            # .list() parametreleri: part="snippet",snippet = video hakkında kısa bilgiler ,title, description, publish time, channel bilgisi bu kısımda , id=video_id , Hangi videonun alınacağı
+            video_req = youtube.videos().list(part="snippet", id=video_id) # part="snippet" -->  hangi alanları istiyoruz: snippet içinde title, description, publishedAt, channelTitle gibi alanlar var
+            video_res = video_req.execute()
+            # .execute() nedir? Bu çok önemli! execute() = API isteğini gerçekten gönderen fonksiyon..list() sadece "isteği hazırladı" .execute() → YouTube API’ye request gönderir ve cevap döner.Dönen veri bir JSON objesidir (dict).
+            '''{ örneğin 
+  "items": [
+    {
+      "snippet": {
+         "title": "Video Başlığı",
+         "description": "...",
+         ...
+      }
+    }
+  ]
+}
+'''
+
+            # .get() ne işe yarar? Python dictionary’deki bir anahtarı almaya yarar. Eğer anahtar yoksa hata vermez, None döner.
+            if video_res.get("items"):
+                video_title = video_res["items"][0]["snippet"]["title"] # Yapı: video_res["items"] → sonuçlar listesi    [0] → ilk video   ["snippet"] → video özellikleri   ["title"] → başlık   Bu şekilde video başlığı elde edilir.
+                print(f"✅ Video başlığı: '{video_title}'")
+        except Exception as e:
+            print(f"⚠️ Başlık çekilemedi: {e}")
+
+        # 2. Yorumları Çekme
+        print(f"--> YouTube yorumları çekiliyor (ID: {video_id})...")
+
+        request = youtube.commentThreads().list( # youtube.commentThreads() bu endpoint video yorumlarını getirir.
+            # parametreler
+            part="snippet", #Yorum detayları:yorum metni ,kullanıcı ,yayınlanma tarihi
+            videoId=video_id, # Hangi videonun yorumları?
+            maxResults=count, # Kaç yorum getirilsin?
+            textFormat="plainText" # html içermesin; direkt düz metin.
+        )
+        response = request.execute() # Yorumları çeker.YouTube API’ye “yorum isteği” gönderir ve JSON döner. execute() = “İsteği YouTube API’ye gönder ve sonucu getir” demektir.
+
+        items = response.get('items', []) # JSON içinden yorumlar items anahtarında gelir.get ile alınır eğer yoksada  [] döner.burada items artık API’den gelen yorumların listesi.
+        print(f"✅ {len(items)} adet yorum bulundu.")
+
+        for item in items: # api’den gelen tüm yorumları tek tek dolaşıyoruz.
+            snippet = item["snippet"]["topLevelComment"]["snippet"] # burada amaç bir yorumun “esas bilgilerinin” bulunduğu yere ulaşmak.
+            '''item
+                 └── snippet
+                         └── topLevelComment
+                                     └── snippet  <-- asıl yorum bilgileri burada
+            
+            Bu içteki snippet şu bilgileri taşıyor:
+            authorDisplayName → Yorum yapan kişi ,textDisplay → Yorumun metni (HTML'li olabilir) , publishedAt → Tarih ,
+            likeCount → Beğeni sayısı  ,updatedAt → Düzenleme zamanı  , Yani yorumun tüm detaylarını veren JSON sözlüğü.
+            
+            '''
 
 
+            text = snippet["textDisplay"] # burada amacımız yorumun metnini almak. YouTube API yorum metinlerini HTML formatlı döndürür:
+            author = snippet["authorDisplayName"] # Yorumu yazan kişinin adını almak.
+            cid = item["snippet"]["topLevelComment"]["id"] # Her yorumun benzersiz ID değerini almak , bu id sayesinde yoruma direkt link oluşturabiliriz.
 
+            # yorum linki oluşturma
+            #YouTube mantığı şudur: v= → video id , lc= → comment id (yorum)
+            link = f"https://www.youtube.com/watch?v={video_id}&lc={cid}"
+            comments_list.append({
+                "text": f"{author}: {text}",
+                "link": link
+            }) # listeye ekleme Amaç: Her yorumu DataFrame’e uygun hale getirmek.
 
+            ''' mesela örnek yapımız:
+            {
+                 "text": "Ahmet: Çok güzel olmuş!",
+                 "link": "https://www.youtube.com/watch?v=xxx&lc=yyy"
+            }
+            '''
+        # en sonda dönen değerimiz ne dönüyor DataFrame --> yorumlar , Video başlığı
+        return pd.DataFrame(comments_list), video_title
 
+    # hata yakalama bölümümüz youtube api çağrılarında iki tür hata olabilir:
+   #YouTube API’nin kendi hataları (örneğin: yanlış api key, kota dolmuş, video bulunamadı, izin yok) ---> bunlar HttpError ile yakalanır
+    #HttpError, Google’ın YouTube API kitaplığının hata sınıfıdır . geldiği    yer    from googleapiclient.errors import HttpError
+    #api kry yanlış ,kota dolmuş ,video silinmiş ,yorumlar engellenmiş bu tip hatalar HTTP protokolü üzerinden geldiği için Google bunlara HttpError der.
+    except HttpError as e:
+        st.error(f"YouTube API Hatası: {e.resp.status} - {e._get_reason()}")
+        # e.resp.status Nedir? resp --> “response” anlamında youtube api’nin döndürdüğü HTTP cevabı.
+        # status --> HTTP durum kodu (status code)Örnek değerler: 400: Bad Request (yanlış istek) ,401: Unauthorized (API key yanlış) ,403: Forbidden (kota doldu/erişim yok) ,404: Not Found (video yok) , 500: Internal Server Error (YouTube problemi)
+        # yani e.resp.status --> api’nin döndürdüğü hata kodunu verir.
+        # ------------------------------------------------------------------
+        # e._get_reason() Nedir --> bu fonksiyon, youtube api hata mesajının metinsel açıklamasını döndürür.örneğin "Quota exceeded" (kota doldu) Bu metin, YouTube API’nin gönderdiği insan tarafından okunabilir açıklamadır.
+        '''
+        Yani bu iki satır şöyle okunabilir:
+                 Hata Kodu: 403
+                 Hata Sebebi: Quota Exceeded (kota doldu)
+        '''
 
+        print(f"❌ YouTube API Hatası: {e}")
+        return pd.DataFrame(columns=['text', 'link']), video_title
 
-
-
-
-
-
-
-
-
-
+    # Programdaki diğer hatalar (sıfıra bölme, JSON bozulması, internet kesilmesi, başka programlama hataları) -->  bunlar Exception ile yakalanır. Bu bölüm bunları ayırmak için yazılmıştır.
+    # Exception sınıfı Python’daki tüm hata türlerinin atasıdır.Örnek yakalayacağı hatalar: KeyError ,TypeError ,ValueError  ,IndexError  Yani: eğer api hatası --> HttpError , diğer tüm hatalar --> Exception
+    except Exception as e:
+        st.error(f"YouTube hatası: {e}")
+        print(f"❌ YouTube hatası: {e}")
+        return pd.DataFrame(columns=['text', 'link']), video_title  # Hata olsa bile fonksiyon:boş bir DataFrame video başlığı (default)döndürür.bu sayede uygulama çökmemiş olur.
 
 
 
