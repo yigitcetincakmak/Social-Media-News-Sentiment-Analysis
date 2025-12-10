@@ -1,0 +1,1577 @@
+/* =========================================
+   1. GLOBAL AYARLAR VE DEĞİŞKENLER
+   ========================================= */
+
+/*:root → CSS’de HTML belgesinin en üst seviyesini temsil eder. Yani <html> elementine karşılık gelir.
+Avantaj: global değişkenleri en üst seviyede tanımlayarak, tüm sayfa elementlerinden erişebilirsin.Syntax zorunlu değil, ama değişkenleri global yapmak için :root kullanılır.*/
+/* --primary gibi vs. bunlar Renk değişkenleri → tekrar eden kodu azaltır  */
+:root { /*Global değişkenler tanımlamak  :root → HTML'in en üst seviyesidir. Buraya yazılan değişkenleri tüm sayfa kullanabilir.*/
+
+    /*isimler zorunlu değil ama "--" ile başlamalı root ta aynı şekilde zorunlu değil ama genelde root tur o  */
+    --primary: #004aad;    /* Kurumsal Mavi */   /*--primary → kendi belirlediğin bir renk değişkenidir. Kod küçülür ve düzenli olur.*/
+    --secondary: #00cec9;  /* Canlı Turkuaz */   /*--secondary → ikinci ana renk.*/
+    --accent: #ff7675;     /* Vurgu Rengi */     /*--accent → özellikle butonlarda, önemli yerlerde kullanılan vurgu rengi.*/
+    --dark: #2d3436;       /*Koyu metin rengi.*/
+    --light: #f5f6fa;      /*Açık arkaplan rengi.*/
+    --glass: rgba(255, 255, 255, 0.95);  /*glass → “cam efekti” için kullanılan yarı saydam beyaz.
+      rgba → renk kodlaması (Red, Green, Blue, Alpha). Syntax: rgba(R, G, B, A) R = Kırmızı (0-255)  G = Yeşil (0-255) B = Mavi (0-255)A = Şeffaflık / Opaklık (0 = tamamen şeffaf, 1 = tamamen opak) Beyaz rengi %95 opaklık ile kullanıyoruz (cam efekti gibi).*/
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /*--shadow → gölge şablonu:0 → x ekseni 10px → y ekseni 30px → blur rgba(0,0,0,0.1) → siyah %10 opaklık
+Bu değeri istediğin kutuya ekleyebilirsin: box-shadow: var(--shadow);
+(Box-shadow örneği) Bu bir gölge (shadow) tanımıdır. Box-shadow için kullanılır. sırasıyla
+0 X ekseni kayması (sağa/sola)    10px Y ekseni kayması (aşağı yukarı)    30px Bulanıklık (blur)     rgba(0,0,0,0.1) Gölge rengi (siyah %10 opaklık) */
+
+    /* Duygu Renkleri Pozitif → yeşil   Negatif → kırmızı   Nötr → sarı  */
+
+    --pos: #00b894;
+    --neg: #d63031;
+    --neu: #fdcb6e;
+}
+
+/*CSS’de <html> elementini temsil eder. Sayfanın en üst seviyesidir, yani tüm sayfa bu elementin içindedir.
+scroll-behavior CSS özelliğidir, sayfa veya element kaydırma davranışını kontrol eder.Yani kullanıcı bir bağlantıya tıkladığında sayfa kayarken nasıl hareket edeceğini belirler.
+scroll-behavior özelliğinin değeri.Anlamı: kaydırma animasyonu yumuşak olsun (smooth scroll).Örneğin: <a href="#analyze">Analiz Et</a> linkine tıklayınca sayfa ani atlamaz, yavaşça kayar.
+ smooth → Kaydırma yumuşak ve animasyonlu olur.*/
+html { scroll-behavior: smooth; } /*Sayfadaki bir link tıklanınca yumuşak kaydırma sağlar.*/
+
+
+/*body → sayfanın görünür kısmı. <body> elementini temsil eder.  CSS’de body’ye yazmak, metin rengi, arka plan, font gibi görsel özellikleri tanımlar. Neden html değil? Çünkü sayfa görünür içerik <body> içindedir. <html> daha çok tüm sayfa çerçevesi için.*/
+
+body { /*body Sayfa genel görünümü */
+    margin: 0; /*margin: 0 → tarayıcı varsayılan boşluklarını sıfırlar.*/
+    font-family: 'Poppins', sans-serif; /*Tüm metinlerin yazı fontu Poppins olacak. sans-serif → Yedek font ailesi  Eğer Poppins tarayıcıda yoksa, ya da kullanıcı fontları kapattıysa yedek bir yazı tipi kullanılır.sans-serif → kuyrukları olmayan, modern yazı aileleri (Arial, Helvetica gibi).*/
+   /*Tarayıcı önce Poppins'i deniyor. Bulamazsa otomatik olarak sans-serif türü bir font seçiyor.Bu bir fallback (yedek font) sistemidir. “Önce Poppins’i kullan. O yoksa modern yazı tiplerinden birini seç.”*/
+    background-color: var(--light); /*Arka plan rengini değişkenden alır: açık gri.*/
+    color: var(--dark); /*Metin rengi koyu gri.*/
+    transition: background-color 0.3s, color 0.3s; /*Karanlık mod falan yaparsan geçişin yumuşak olmasını sağlar.*/
+}
+
+/*İçeriği ortalamak ve maksimum genişlik vermek*/
+.container {   /*Yani “bu class’a sahip tüm elemanlar böyle görünsün” demektir.*/
+    max-width: 1200px;/*Container (kutu) maksimum 1200px genişlikte olur.*/
+    margin: 0 auto;/*Ortaya hizalamadır. margin-left = auto margin-right = auto.
+    0 → Üst ve alt dış boşluk 0 piksel    auto → Sol ve sağ boşluğu otomatik ayarlar
+    Neden “auto” ortalıyor Tarayıcı şöyle düşünür: “Sağ ve sol margin’i eşit yaparsam eleman ortalanmış olur.O yüzden:  margin: 0 auto  Elemanı ortalamak için kullanılan klasik yöntem.;” */
+    padding: 0 20px; /*Sağ ve sol boşluk → 20px Mobil cihazlarda sıkışmayı engeller.*/
+/*padding = iç boşluk (kutunun içindeki yazı ile kenarlar arası mesafe)  0 → Üst ve alt iç boşluk yok (Yani top ve bottom padding = 0 px        20px → Sol ve sağ iç boşluk 20 piksel (Yani left ve right padding = 20 px)
+Kısaca: --> Üst–alt boşluk = 0 px  --> Sağ–sol boşluk = 20 px*/
+/* Aklında şöyle kalabilir: Margin → dış boşluk → Kutunun dışındaki mesafe Padding → iç boşluk → Kutunun içindeki metne olan mesafe */
+
+}
+
+
+/*ID = Tek bir elemana özel stil veya davranış*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   2. NAVBAR (ÜST MENÜ)
+   ========================================= */
+.navbar {      /*navbar sınıfına sahip elementi stillendiriyoruz Genelde üst menü/navigation bar demek.*/
+    position: fixed; /*Navbar’ı ekrana sabitler. Kaydırınca aşağı-yukarı gitmez Bu, navbar’ın ekrana sabitlenmesi anlamına gelir. Navbar sayfanın üstüne “yapışır” Sayfayı aşağı kaydırsan bile yerinde kalır Ekrandan hiç ayrılmaz Örneğin Instagram, Twitter, YouTube üst barı → fixed.....*/
+    top: 0; /* Sabitlenen navbar sayfanın en üstüne yapışır.Bu, fixed navbar’ın tam ekranın en üstüne yerleşmesini sağlar.top: 0 → yukarıya tamamen yapıştır. İstersen top: 20px gibi bir değerle biraz aşağı alabilirdin. */
+    width: 100%; /*Tüm ekran genişliğini kaplar Navbar’ın ekran genişliğinin %100’ünü kaplamasını sağlar. Ekran ne kadar geniş olursa olsun, navbar tam genişlikte olur..*/
+    background: white;  /*Arka plan rengi beyaz.*/
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);  /*Altına hafif gölge verir (estetik navbar efekti).Bu navbar’ın altına gölge verir.
+    0 → yatay gölge (x ekseni)  2px → dikey gölge (y ekseni) 10px → bulanıklık miktarı  rgba(0,0,0,0.05) → gölgenin rengi (çok hafif siyah) Navbar’ın altında hafif bir gölge görünür.*/
+    z-index: 1000;/*Navbar’ın diğer elementlerin üstünde kalmasını garanti eder. Bu, navbar’ın ekrandaki diğer elemanların üzerinde görünmesini garantiler.
+     Neden kullanılır Sayfayı kaydırdığında alttaki içerik navbar’ın üstüne çıkmasın.
+     z-index nasıl çalışır   Z-index = katman sırası demektir. Büyük olan üstte, küçük olan altta olur.z-index: 1  → altta z-index: 100 → üstte z-index: 1000 → çok üstte  1000 özel bir sayı değil.Sadece "yüksek olsun" diye seçilir.  */
+    padding: 15px 0;/*Yukarı ve aşağıdan boşluk (soldan-sağdan 0). Navbar her zaman en üstte kalsın.Bu navbar’ın içindeki içerik ile sınır arasına boşluk koyar. 15px → Üst ve alt boşluk (top + bottom) 0 → Sol ve sağ boşluk yok (left + right) */
+    transition: background-color 0.3s;/*Tema değiştiğinde veya scroll olduğunda arka plan rengi yumuşak animasyonla değişir.*/
+    /*Navbar'ın arka plan rengi değişirse 0.3 saniyede yumuşak bir animasyonla değişsin demektir.Örneğin Karanlık tema açıldığında hover efektlerinde*/
+
+}
+
+
+.nav-container {
+    display: flex;/* Bu özellik Flexbox sistemini aktif eder  Flexbox ne işe yarar? Elemanları yan yana dizer.Bu satır olmasa: Logo ve linkler üst üste görünebilir.
+    . İçindeki elemanları (logo + linkler) yan yana dizer.*/
+    justify-content: space-between;/*Biri sola (logo), biri sağa (nav-links) gider. Araları açılır.*/
+  /*Bu, yatayda elemanların sağa ve sola yayılmasını sağlar.Şu an .nav-container içinde iki şey var:Logo (sol) Menü linkleri (sağ) İlk eleman tam sola gider. Son eleman tam sağa gider  Aradaki boşluk otomatik açılır.*/
+    align-items: center;/*Dikeyde ortalar. Bu, elemanları dikeyde ortalar.Logo yüksek olabilir Menü linklerinin boyu farklı olabilir   hepsi aynı çizgi üzerinde ortalanır.*/
+}
+
+
+.logo {/*.logo class’ı logo yazısının boyutunu, kalınlığını ve rengini belirler.*/
+    font-size: 1.5rem;/*Yazının büyüklüğü.Root EM demektir.
+    Tarayıcıda varsayılan <html> font boyutu 16px’dir. 1.5rem → 1.5 × 16px = 24px olur.*/
+
+    font-weight: 700;/*Kalın font. Normal: 400 → normal  700 → bold (kalın)*/
+    color: var(--primary);/*Temadaki mavi renkten gelir.var(--primary) CSS değişkeni.*/
+}
+
+.highlight { color: var(--secondary); }/*Kelimeyi vurgu rengiyle (turkuaz) renklendirir.*/
+
+.nav-links {
+    list-style: none;/* <ul> içindeki yuvarlak noktaları kaldırır.madde işaretlerini kaldırır default yuvarlak madde işaretlerini kaldırır */
+    display: flex;/*<li> elemanlarını yatay dizer.yatay sıralama için flexbox kullanılır <li> öğelerini yan yana dizer  */
+    gap: 30px; /*Her link arasında 30px boşluk olur.öğeler arasına boşluk  */
+    align-items: center;/*elemanları dikeyde ortalar. Yani linkler navbar yüksekliğinin ortasında hizalanır..*/
+}
+
+/*.nav-links a → navbar içindeki tüm linkleri seçer ve alt çizgisiz, koyu renkli, yarı kalın ve renk geçişi yumuşak hale getirir.*/
+.nav-links a {/*a nedir? HTML’de <a> etiketi anchor / bağlantı (link) demektir.Örneğin <a href="#home">Ana Sayfa</a> → tıklanınca başka sayfaya veya sayfa içi bölüme gider. Buradaki .nav-links a → .nav-links içindeki tüm <a> linklerini seçer.*/
+    text-decoration: none;/*Link alt çizgisi kalkar. Normalde <a> linkler mavi ve altı çizgili olur, bunu kaldırmak için kullanılır.*/
+    color: var(--dark);/*Varsayılan koyu gri Linklerin varsayılan rengini ayarlar.var(--dark) → CSS değişkeni, burada koyu gri (#2d3436).*/
+    font-weight: 600;/*Yarı kalın.Yazının kalınlık seviyesini ayarlar.600 → yarı kalın.*/
+    transition: color 0.3s;/*Hover’da renk yumuşak geçiş yapar.CSS efekti: link rengi değiştiğinde (hover vs) 0.3 saniyede yumuşak geçiş yapar.*/
+}
+
+
+/*Hover ve Active renkleri Üzerine gelince veya aktif sayfadaysa mavi olur.*/
+.nav-links a:hover,/*CSS’de pseudo-class (sahte sınıf) olarak geçer : işareti pseudo-class anlamına gelir.
+a:hover → fare (mouse) linkin üzerine geldiğinde uygulanacak stil. Burada: fare linkin üzerine gelirse rengi var(--primary) (mavi) olsun. */
+
+.nav-links a.active { /*.active nedir . işareti CSS’de class seçici demektir.HTML’de <a class="active">Ana Sayfa</a> gibi kullanılır..active → aktif / seçili linki belirtmek için kullanılır.Burada: aktif link (örneğin şu anki sayfa veya bölüm) da mavi olsun. */
+        color: var(--primary);
+}
+
+/*Tema Butonu .theme-btn - Tema Değiştirme Butonu */
+.theme-btn {/**/
+    background: none;/*Arka plan yok → saydam. Butonun arka plan rengini kaldırır.Saydam / şeffaf görünmesini sağlar.*/
+    border: 2px solid var(--primary);/*Mavi çerçeve. Butonun çevresine 2px kalınlığında, düz çizgi (solid) mavi bir çerçeve ekler. var(--primary) → :root içinde tanımlı mavi renk.*/
+    color: var(--primary);/*Buton içindeki ikon mavi görünür.*/
+    padding: 8px 12px;/*İç dolgusu.İç boşluk: üst-alt 8px, sağ-sol 12px. Metin/ikon ile buton kenarı arasında boşluk bırakır.*/
+    border-radius: 50%;/*border-radius, CSS’te bir öğenin köşelerini yuvarlatmak için kullanılan özelliktir.
+    Bir kutu, buton, resim veya herhangi bir elementin köşelerinin yuvarlaklık derecesini belirler.Tam yuvarlak yapar.pixel ile veya yüzde ile kullanım var 10px yuvarlatır yada 50%
+
+    Dört köşeyi ayrı ayrı yuvarlamak Sırasıyla:üst-sol, üst-sağ, alt-sağ, alt-sol border-radius: 10px 20px 30px 40px;.
+    Buton köşelerini hafif yuvarlamak button {border-radius: 6px;} çok yuvarlak oval 30px
+*/
+
+    cursor: pointer;/*Fare imleci tıklanabilir olur Normalde imleç ok şeklindedir.. cursor: pointer; fare imlecinin (mouse işaretçisinin) şeklini değiştiren bir CSS özelliğidir.
+    pointer → "el işareti" anlamına gelir.Yani bir elementin üzerine geldiğinde (hover olduğunda): Normal ok imleci Eldeki tık işaretine dönüşür Genelde tıklanabilir öğelerde kullanılır: butonlar linkler kartların üzerine gelince menü elemanları örneğin button {cursor: pointer;}*/
+    transition: all 0.3s;/*CSS değişikliklerinde (örn. hover) yumuşak geçiş animasyonu sağlar. Burada buton hover olduğunda renk veya arka plan değişimi 0.3 saniyede gerçekleşir.*/
+}
+
+/*transition: all 0.3s içindeki all, “bütün özellikler için geçiş efekti uygula” demektir.
+--> all ne demek?
+
+all = bu elementin değişen tüm CSS özelliklerine transition uygula.
+
+Örneğin renk değişirse → animasyon
+Boyut değişirse → animasyon
+Arka plan değişirse → animasyon
+Border değişirse → animasyon
+… hepsine uygulanır.
+
+
+--> Peki all yazmazsak ne olur?
+
+O zaman hangi özelliği animasyonlu yapacağını açıkça söylemen gerekir.
+
+transition: background-color 0.3s;
+➡ Sadece background-color animasyonlu olur.
+Başka özellikler anında değişir (animasyonsuz).
+
+*/
+
+
+
+
+
+
+/*hover, CSS’te bir pseudo-classtır ve fareyle bir öğenin üzerine gelindiğinde çalışan stil efektidir.
+element:hover → Kullanıcı fareyi o elementin üzerine getirdiğinde uygulanacak CSS kurallarıdır.
+
+button:hover {
+
+    background-color: blue;
+    color: white;
+
+}   Bu ne demek? Kullanıcı butonun üstüne gelince arka planı mavi, Yazı rengi beyaz olur.  Hover ne zaman çalışır Fare ile bir öğenin üzerine gelince*/
+
+
+
+/*Üzerine gelince mavi arka plan + beyaz ikon olur.Tersine döner yani.*/
+.theme-btn:hover {/**/
+    background: var(--primary);/**/
+    color: white;/**/
+}
+/*Kısaca:
+
+color: → yazının (text) rengi
+
+background-color: → arka plan rengi
+
+border-color: → kenarlık rengi*/
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   3. HERO SECTION (GİRİŞ EKRANI)
+   ========================================= */
+.hero {
+    height: 80vh;/*Viewport Height demektir.alanı ekranın yüksekliğinin %80’i kadar olur.Full ekran değil ama büyük bir tanıtım alanı oluşturur.*/
+    background: linear-gradient(-45deg, #004aad, #00cec9, #23a6d5, #23d5ab); /*linear-gradient() --> doğrusal renk geçişi -45deg --> açı (45 derece ters yönde)
+    #004aad --> 1. renk  #00cec9 --> 2. renk  #23a6d5 --> 3. renk  #23d5ab → 4. renk
+    Bu ne yapar Renkler arasında yumuşak bir geçiş oluşturur.Açılı gradient daha modern bir görüntü sağlar. */
+    background-size: 400% 400%; /*Arka planı 4 kat büyük yapar. Arka plan kaydırılarak animasyon verileceği için geniş tutulur. Normalde 100% 100% yeter ama animasyonlu hareket için büyük tutulur.*/
+    animation: gradientBG 15s ease infinite; /*gradientBG --> çalışacak animasyonun adı    15s --> 15 saniyede tamamlar     ease --> yumuşak hız eğrisi   infinite → sürekli tekrar eder         Görevi:--> Arka plandaki gradient renkler hareket eder.*/
+    position: relative;
+    display: flex;
+    align-items: center;/*Flexbox içindeki elemanları dikey ortalar.*/
+    color: white;/*Tüm yazıların rengi beyaz olur.*/
+    text-align: center;/*Metinler ortalanır.*/
+    clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%); /*Bu, elemanın şeklini özel bir poligon ile keser.
+    Noktalar:
+
+       0 0 --> sol üst
+       100% 0 --> sağ üst
+       100% 85% --> sağ alt (eğimli)
+       0 100% --> sol alt
+       Ne işe yarar?
+
+--> Hero alanının alt kısmını eğimli bir şekilde keserek modern görünüm sağlar.*/
+
+}
+
+
+
+
+
+
+
+/*Animasyonun nasıl hareket edeceğini tarif eder.*/
+/*@ işareti ne?
+CSS’te ö özel kurallar (at-rules) belirtmek için kullanılır.
+
+Örnek:
+
+@media --> ekran boyutu kuralları
+@font-face --> font yükleme
+@keyframes --> animasyon tanımlama
+
+@keyframes ne yapar? Bir animasyonun başlangıç, orta ve bitiş durumlarını tanımlar.
+
+İçindeki yüzde değerleri (0%, 50%, 100%) ne demek?
+0% --> animasyonun başlangıcı
+50% --> animasyonun yarısı
+100% --> animasyonun sonu
+
+
+Bu animasyon ne yapıyor?
+
+background-position değerini değiştiriyor → yani arka plan sağa-sola kayıyor
+0% --> arka plan solda
+50% --> tamamen sağa kayıyor
+100% --> tekrar sola dönüyor
+ Sonuç:
+--> Renkli arka plan akıyormuş gibi animasyon oluşur.
+*/
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; } /*Başlangıç → arka plan solda.*/
+    50% { background-position: 100% 50%; }/*Orta → tamamen sağa kayar.*/
+    100% { background-position: 0% 50%; }/*Son → tekrar sola döner.*/
+}/* Sonuç:Renkler sağa-sola yavaşça akıyor gibi görünür.*/
+
+.hero-content {
+    width: 100%;
+    z-index: 2;
+    animation: fadeInUp 1s ease; /*animation: özelliği bir elemente animasyon uygulamak içindir: Açılırken yukarı doğru yumuşak bir geçiş yapar.
+   Parametreleri açıklayalım: fadeInUp → animasyonun adı Bu isim sizin CSS dosyanızda başka bir yerde tanımlanmış olabilir.Genelde şu tür animasyonları ifade eder:sayfa yüklenince içerik hafif aşağıdan yukarı doğru gelir opaklık artar (fade)
+1s → animasyon süresi 1 saniyede oynayacak demek.
+
+ease → hız eğrisi (easing function)
+Animasyonun hızının yumuşak şekilde başlayıp bitmesini sağlar.
+
+ease --> yavaş başlar, hızlanır, yavaşlar
+linear --> hep sabit hız
+ease-in --> yavaş başlar
+ease-out --> yavaş biter
+
+*/
+}
+.hero h1 { font-size: 3.5rem; margin-bottom: 20px; }/*3.5rem = 3.5 × 16 = 56px*/
+.hero p { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; }/*opacity: 0.9; %90 görünür → %10 şeffaf*/
+/*margin = Elemanın dış boşluğudur.
+margin-bottom = Elemanın alt tarafındaki boşluktur.
+
+.hero h1 {
+    margin-bottom: 20px;
+}
+Bu demek ki:
+--> Başlık (h1) bittiğinde altına 20px boşluk ekle.
+ Margin = dış boşluk (komşu elementlerle arayı açar).
+ Padding = iç boşluk (içeri doğru büyütür).
+
+
+
+
+*/
+
+
+.cta-button {/*cta-button içindeki özellikler*/
+    padding: 15px 40px; /*Yukarı–aşağı boşluk: 15px  Sağ–sol boşluk: 40px*/
+    background: white;/*Arka plan rengini beyaz yapar.*/
+    color: var(--primary);
+    text-decoration: none;/*alt çizgiyi kaldırır*/
+    border-radius: 50px;/*butonu oval yapar Ne kadar büyük olursa, o kadar yuvarlak olur.*/
+    font-weight: 700;/*Yazıyı kalın yapar.*/
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);/*Butonun altına gölge ekler.
+Açılımı:
+0 → yatay kayma yok
+5px → dikey gölge
+15px → bulanıklık
+rgba(0,0,0,0.2) → %20 opak siyah
+
+*/
+    transition: transform 0.3s;/*“Bir animasyon olursa, bunu 0.3 saniyede yumuşak yap.” Sadece transform özelliklerini geçiş animasyonu ile uygular.*/
+}
+
+
+.cta-button:hover { transform: translateY(-5px); } /*:hover nedir?
+
+Elementin üzerine fare gelince çalışan CSS seçicisidir.
+transform → 2D/3D dönüşüm yapmak için kullanılır.
+döndürme (rotate)
+büyütme (scale)
+kaydırma (translate)
+eğme (skew)
+
+translateY(-5px) ne demek
+Y ekseni = dikey eksen
+-5px → yukarı doğru 5 piksel hareket
+YANİ:
+Buton fare ile üzerine gelince yukarı zıplar gibi olur
+Bu animasyon transition 0.3s sayesinde:
+sert değil
+yumuşak bir geçişle yapılır.
+*/
+
+/*
+:hover nedir Kullanıcı mouse ile bir elemanın üzerine geldiğinde çalışan stil.
+
+.cta-button:hover {
+    transform: translateY(-5px);
+}
+Bu ne demek?
+➡ Mouse butonun üstüne gelince butonu 5px yukarı kaydır.
+
+transform: translateY(-5px) nedir?
+
+Bir elemanı hareket ettiren CSS özelliğidir.
+
+translateY() → dikey yönde hareket ettirir
+translateX() → yatay yönde hareket ettirir
+
+-5px → yukarı
++5px → aşağı
+
+➡ Yani hover olunca buton hafif “zıplıyor”.
+
+
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   4. ANALİZ BÖLÜMÜ (FORM & INPUTS)
+   ========================================= */
+.section { padding: 80px 0; } /* .section nedir? HTML’de class="section" olan tüm elemanları seçer.Yani CSS seçicidir. Padding ne Bu, elemanın iç boşluğudur.
+80px 0  ilk değer: üst & alt → 80px         ikinci değer: sol & sağ → 0px  Yani:Üstten 80px boşluk , Alttan 80px boşluk , Sağdan 0 , Soldan 0*/
+.section-header { text-align: center; margin-bottom: 50px; } /*text-align: center İçindeki metinleri, inline elemanları ve h2 gibi başlıkları ortalar.margin-bottom: 50px Elemanın dış boşluğu, aşağıya doğru 50px boşluk bırakır. Bu, başlık ile diğer içerik arasında mesafe yaratır.*/
+.section-header h2 { font-size: 2.5rem; color: var(--primary); }/*.section-header içinde bulunan h2 etiketlerini seçer.
+ font-size: 2.5rem  --> rem birimidir. REM root em demektir Yani: HTML kök font boyutuna göre ölçeklenir  1rem = 16px   2.5rem = 2.5 × 16px = 40px */
+/*color: var(--primary) CSS değişkenidir. --primary daha önce :root içinde tanımlanmış renktir.*/
+
+
+/*Bu bir tasarım bileşeni. Kart, panel, kutu gibi davranır.*/
+.glass-panel {
+    background: white;/*Panelin arka planı beyaz.*/
+    padding: 40px;/*Tek değer → her taraf 40px iç boşluk: üst: 40px , alt: 40px ,sol: 40px ,sağ: 40px*/
+    border-radius: 20px;/*Kenarları 20px yuvarlatır. Yuvarlak köşeli kutu olur.*/
+    box-shadow: var(--shadow);/*Gölge verir.Var(--shadow) CSS değişkenidir.*/
+    max-width: 800px;/*Panel 800px’den geniş OLAMAZ Ama ekran küçükse otomatik küçülür → responsive */
+    margin: 0 auto; /*0 üst ve alt: 0 margin  ,  auto sağ ve sol margin otomatik    auto sağ/sol margin, elemanı yatayda ortalar. Yani panel ekranın ortasına gelir.*/
+    transition: background-color 0.3s; /*Arka plan renginde bir değişiklik olursa bunu 0.3 saniyede animasyonlu olarak yap.*/
+}
+/*SONUÇ – Bu CSS Neyi Sağlıyor?
+
+✔ Sayfada bölümler oluşturur
+✔ Başlıkları düzgün aralıklı ve ortalı yapar
+✔ Modern bir panel tasarımı oluşturur
+✔ Gölge, padding, rounded corners ile profesyonel görünüm
+✔ Responsive (mobil uyumlu)
+✔ Hover/animasyon kullanınca akıcı geçiş sağlar
+
+*/
+
+
+
+
+
+
+
+/* Sekmeler (Tabs) */
+.tabs {
+    display: flex;/*Bu container’ı flexbox yapar.Flexbox = kutuları yan yana veya dikey kolayca hizalamaya yarayan modern CSS sistemi.Burada tab butonlarını yan yana dizer*/
+    justify-content: center;/*Flex çocukları (tab butonlarını) yatayda ortalar.*/
+    gap: 10px;/*Flex elemanları arasında 10 piksel boşluk bırakır.*/
+    margin-bottom: 30px;/*Tabs bloğunun altına 30px dış boşluk ekler.Diğer elemanlarla mesafe oluşturur.*/
+    background: #f1f2f6;/*Tabs kapsayıcısının arka plan rengini verir.Açık gri bir arka plan.*/
+    padding: 5px;/*Tüm çevresine 5px iç boşluk verir.Bu yüzden tab butonları arka plana yaslanmaz, rahat durur.*/
+    border-radius: 50px;/*Köşeleri TAM yuvarlak yapar.Yükseklik çok küçük olduğu için 50px → oval, kapsül şeklinde görünür.*/
+    width: fit-content;/* Bu çok önemli! fit-content Container genişliği: İçindeki elemanların genişliği kadar olur Ama mümkün olan en ideal minimal genişlik Yani .tabs kutusu ekrana yayılmaz, butonlar toplamı kadar bir genişliğe küçülür. --> PROFESYONEL tasarım görünümü.*/
+    margin-left: auto; /*margin-left: auto; margin-right: auto; Bu ikili, elemanı yatayda tam ortaya hizalar. width otomatik olmadığı için auto çalışır.*/
+    margin-right: auto;
+}
+/*✔ Ortalanmış
+✔ Oval arka planlı
+✔ Boşluklu
+✔ Profesyonel görünümde sekme grubu*/
+
+
+
+
+
+
+.tab-btn {
+    padding: 10px 30px;/*İç boşluk: Üst/alt: 10px Sağ/sol: 30px Bu butonları geniş ve dokunması kolay hale getirir.*/
+    border: none; /*Butonun varsayılan çerçevesini kaldırır*/
+    background: transparent;/*Butonun arka planı şeffaf olur. Bu, aktif olmayan butonların sade görünmesini sağlar.*/
+    border-radius: 40px;/*Köşeleri yuvarlatır → butonları oval yapar.*/
+    cursor: pointer;/*Üzerine gelince el işareti çıkar. “Bu tıklanabilir” sinyali verir.*/
+    font-weight: 600;/*Yazıyı kalınlaştırır (semi-bold).*/
+    color: #636e72;/*Gri bir metin rengi → aktif olmayan tablar daha soluk görünür.*/
+    transition: all 0.3s;/*Butona yapılan her stil değişikliğini 0.3 saniyelik animasyon ile yapar.*/
+}
+
+
+/*Bu sınıf, JS tarafından eklenir: btn.classList.add('active');
+ Yani kullanıcı hangi sekmeye tıklarsa o butona .active eklenir.
+
+ Hem tab-btn sınıfına sahip, hem de active sınıfına sahip olan element Yani HTML’de şöyle bir yapı olduğunda çalışır:    <button class="tab-btn active">Twitter</button>*/
+/*Yani .active = “aktif olan buton” anlamına gelir.
+.tab-btn.active nasıl birleştiriliyor? CSS’te yan yana iki sınıf yazarsan, bu demektir ki:“Bu stiller, tab-btn ve active sınıflarına aynı anda sahip olan elementlere uygulanacak.”*/
+
+
+.tab-btn.active {
+    background: var(--primary);/*Aktif butonun arka plan rengi ana tema rengi olur Bu, aktif tab’ın arka planını tema renginde yapar. Sonra bu değişkeni istediğin yerde çağırıyorsun:*/
+    color: white;/*Yazı beyaz olur → kontrast artar.Yazı–arka plan kontrastını artırır.*/
+    box-shadow: 0 4px 10px rgba(0,74,173,0.3);/*Butona hafif bir gölge verilir →Bir elemanın (buton, div, kart vs.) çevresine gölge efekti ekler.
+    Genel format:
+box-shadow: X-Yatay, Y-Dikey, Blur(dağılma), Renk Bu gölge butonun aktif olduğunu, öne çıktığını, seçili olduğunu belli eder. Modern web sitelerinde çok kullanılır.;
+
+Şimdi senin örneğini parçalayalım:
+1) "0" → X-Yatay gölge
+
+0 piksel = sağa–sola kayma yok
+Gölge tam altında
+
+2) "4px" → Y-Dikey gölge
+
+4px = gölge 4 piksel aşağı düşer
+Buton hafif "yukarı kalkmış" gibi görünür
+
+
+3) "10px" → Blur (bulanıklık)
+
+10px = gölge yayılır, yumuşak görünür
+
+
+4) rgba(0,74,173,0.3) → gölgenin rengi
+
+rgba formatı:
+
+rgba(R, G, B, A)
+
+R = kırmızı (0–255)
+G = yeşil (0–255)
+B = mavi (0–255)
+A = saydamlık (0–1)
+
+Senin değerlerin:
+
+Değer	      Anlamı
+0	        kırmızı yok
+74	        biraz yeşil
+173	        yüksek mavi
+0.3	        %30 opaklık
+
+Bu, tema renginin çok açık ve saydam bir gölgesi demek.
+
+*/
+}
+
+
+
+
+/* Girdiler */
+
+.input-group { margin-bottom: 20px; animation: fadeIn 0.5s; }/*.input-group = HTML’deki bir DIV sınıfı margin-bottom: 20px; Bu, grup ile altındaki element arasında 20px boşluk bırakır.  margin = dış boşluk  padding = iç boşluk Bu durumda: .input-group bloğunun altında 20px boşluk olur.*/
+/*Bu, bu elemente bir CSS animasyonu uygular.fadeIn → animasyonun adı (CSS içinde @keyframes ile tanımlanmıştır) 0.5s → animasyonun süresi (yarım saniye) Bu sayede input çalışırken yumuşak bir şekilde ekrana gelir.*/
+
+.form-row { display: flex; gap: 15px; } /*display: flex; Bu satır, o container içindeki elemanları yan yana yerleştirir. Flex olmazsa  Elemanlar alt alta olur. Flex ile  Yan yana dizilirler.*/
+/*gap: 15px; Yan yana duran elemanlar arasında 15px boşluk oluşturur. Margin falan yazmaya gerek yok → gap otomatik boşluk ekler.*/
+
+
+input, select {/*Bu satır iki elementi aynı anda seçer:*/
+    width: 100%;/*Genişliği %100 yapar → bulunduğu kutunun tamamını kaplar.*/
+    padding: 15px;/*İç boşluk = input kutusunun içinde yazının etrafındaki mesafe.*/
+    border: 2px solid #eee;/*Border (çizgi) tanımı: 2px: kalınlık solid: düz çizgi #eee: açık gri renk*/
+    border-radius: 10px;/*Köşeleri yuvarlatır → input daha modern görünür.*/
+    font-size: 1rem;/*Yazı boyutu. 1rem = 16px (varsayılan).*/
+    transition: border-color 0.3s;/*Border renginin değişmesi yumuşak şekilde olsun demektir.Örneğin focus durumunda renk değişecek ya… Ani değil 0.3 saniyede geçiş yapar.*/
+}
+
+input:focus, select:focus { border-color: var(--primary); outline: none; }/*:focus nedir? Bir input'a tıklayıp yazmaya başladığında element focus olur. Focus olduğunda: Border rengi değişsin Mavi varsayılan outline görünmesin
+border-color: var(--primary); CSS değişkenindeki ana renk kullanılır. var(--primary) genelde mavi bir renktir. outline: none; Tarayıcının default mavi çerçevesi kalkar.*/
+
+.hidden { display: none; }/*.hidden ne işe yarar? Bu sınıf HTML’de bir elemanı tamamen görünmez yapar. Ekranda olmaz. Yer kaplamaz.*/
+
+
+
+
+
+/*.analyze-submit-btn → tamamı tek bir sınıf (class) adıdır.
+CSS’de . (nokta) bir class seçicisidir.Noktadan sonra gelen ifade sınıfın adıdır. Boşluk, tire, alt çizgi olabilir.*/
+.analyze-submit-btn {
+    width: 100%;/*Buton bulunduğu container'ın tamamını kaplar → geniş buton.*/
+    padding: 15px;/*Butonun içindeki metin ile kenarı arasındaki boşluğu ayarlar — tüm kenarlara 15px.*/
+    background: linear-gradient(to right, #004aad, #0078d7);/*Buton arka planına soldan sağa bir renk geçişi (gradyan) uygular.
+    1. Parametre → Yön (direction) to right  bu, gradyanın yönünü belirliyor: to right → soldan sağa renk geçişi  to left → sağdan sola   to bottom → yukarıdan aşağı  to top → aşağıdan yukarı
+    2. Parametre → Başlangıç rengi #004aad → mavi bir ton
+    3. Parametre → Bitiş rengi #0078d7 Bu renk gradyanın bittiği noktadır.
+
+    Gradyan görsel olarak nasıl çalışıyor background: linear-gradient(to right, #004aad, #0078d7);   Demektir ki:
+
+“Soldan → sağa doğru #004aad renginden #0078d7 rengine yumuşak geçiş yap.   Yani buton şöyle görünür: [ #004aad ---------> #0078d7 ]” Bir geçiş efekti olur.
+*/
+
+    color: white;/*Buton içindeki metnin rengini beyaz yapar.*/
+    border: none;/*Butonun çevresindeki varsayılan kenarlığı kaldırır.*/
+    border-radius: 10px;/*Köşeleri 10px yuvarlatır — daha modern ve yumuşak görünüm.*/
+    font-size: 1.1rem;/*Yazı boyutunu root’ın (html) font-size’ına göre 1.1 kat yapar (genelde 1rem = 16px ise ~17.6px).*/
+    font-weight: 700;/*Yazıyı kalınlaştırır (bold).*/
+    cursor: pointer;/*Fare imlecini el işareti yapar; kullanıcılara “tıklanabilir” olduğunu gösterir.*/
+    transition: opacity 0.3s;/*Opacity değişiklikleri (ör. hover ile) 0.3 saniyede yumuşak bir geçişle olur.*/
+}
+.analyze-submit-btn:hover { opacity: 0.9; }
+/*:hover nedir? Fare ile butonun üzerine gelindiğinde tetiklenen pseudo-class.
+opacity: 0.9 butonun hafifçe saydamlaşmasını sağlar, kullanıcının etkileşimde olduğunu verir.*/
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   5. SONUÇLAR PANELİ
+   ========================================= */
+/* Sonuç Kartları */
+
+.metrics-grid {
+    display: grid;/*Bu container içindeki çocukları CSS Grid layout ile yerleştirir. Grid, satır/ sütun temelli düzen sağlar.Neden kullanılır: Birden çok kartı düzenli bir ızgara (grid) şeklinde görüntülemek istiyorsan Grid esneklik ve kontrollük sağlar (ör. sütun sayısı, boşluk, hizalama).*/
+    grid-template-columns: repeat(3, 1fr);/*Ne yapar: Grid’in sütun yapısını tanımlar. repeat(3, 1fr) = 3 sütun, her biri 1fr.  1fr nedir? → “1 fraction” (birim pay). Kapsayıcının kullanılabilir genişliğini eşit parçalara böler. Yani: üç eşit sütun elde edersin.  */
+    gap: 20px;/*Ne yapar: Grid hücreleri arasındaki boşluk (hem satır hem sütun) 20px yapar. Neden: Elemanlar arasına eşit ve temiz boşluk koyar. gap modern ve okunması kolaydır. Not: Eskiden margin'lerle uğraşılırdı; gap daha pratiktir.*/
+    margin-bottom: 30px;/*margin-bottom: 30px; ve margin-top: 30px; Ne yapar: Grid ile çevresindeki içerikler arasında üst/alt boşluk bırakır.*/
+    margin-top: 30px;
+}
+
+
+.metric-card {/*Her bir kartın temel stili*/
+    background: white;/*Kartın arka planını beyaz yapar. Kart içindeki renk ve ikonların okunmasını kolaylaştırır.*/
+    padding: 20px;/*İç boşluk: kartın içindeki ikon/metin ile kart kenarı arasında 20px mesafe bırakır. Bu, kartın “dolgun” ve rahat görünmesini sağlar.*/
+    border-radius: 15px;/*Köşeleri yuvarlatır. Daha modern, yumuşak bir görünüm verir.*/
+    box-shadow: var(--shadow);/*Kartın altına gölge uygular. var(--shadow) değişken olarak tanımlanmıştır (muhtemelen 0 10px 30px rgba(0,0,0,0.1) gibi).*/
+    display: flex;/*Kart içeriğini flex konteyner yapar. Bu sayede .icon ve metin blokları (label/value) yatayda hizalanabilir. Flex, içerikleri yatayda hizalamak için uygun: icon solda, metin sağda.*/
+    align-items: center;/*Flex içindeki öğeleri dikey ortalar. İkona ve metne aynı yükseklikte hizalama sağlar.*/
+    gap: 20px;/*Flex çocukları arasında 20px boşluk bırakır. (Eski yöntem: çocuklara margin vermek; gap daha temiz.)*/
+    transition: background-color 0.3s;/*Kartın arka plan rengi değişirse (ör. hover’da) bu değişim 0.3s sürede yumuşak olur.*/
+}
+
+
+
+
+.metric-card .icon {/*Icon kutucuğu*/
+    width: 50px; height: 50px;/* İkon kutusunun genişliği ve yüksekliği. İkisi eşit → kare kutu oluşturur. İçindeki emoji veya ikon, bu kutu içinde durur.Boyut: kare kutu — ikonu tutacak alanı belirler.*/
+    border-radius: 50%;/*Bir kutuya 50% verirsen → kare tam bir daireye dönüşür.Yani ikon dairesel bir rozet içinde görünür.%50 ile kare → daire olur. İkon dairesel bir konteyner içinde gösterilir (profil/rozet gibi).*/
+    display: flex;/*Flexbox aktif olur → içindeki öğeleri hizalamada kullanılır. İkonu içeride ortalar (hem yatay hem dikey).*/
+    align-items: center;/*Flexbox’ın dikey hizalama özelliği.İkon dikey olarak ortalanır.*/
+    justify-content: center;/*Yatay hizalama. İkon yatay olarak ortalanır.Sonuç:--> İkon tam ortada duran, yuvarlak bir rozet şeklinde görünür.*/
+    font-size: 1.5rem;/*İkon veya emoji boyutunu büyütür.*/
+}
+
+
+
+.metric-card.pos .icon { background: #e2fcf2; color: var(--pos); }/*Arka plan: açık yeşil ton (#e2fcf2)   İkon rengi: var(--pos) (muhtemel pozitif yeşil) Anlam: pozitif kartlar için kullanılacak görsel tema */
+.metric-card.neg .icon { background: #ffecec; color: var(--neg); }/*Arka plan: açık kırmızı/turuncu ton — negatif durum gösterir İkon rengi: var(--neg) (negatif renk)*/
+.metric-card.neu .icon { background: #fff7d6; color: var(--neu); }/*Arka plan: nötr sarımsı ton — nötr gösterim*/
+
+
+
+.metric-card .value {/*sayı / değer gösterimi Bu alan analiz sonuçlarındaki sayı kısmıdır (ör: %64, 0.78, vb*/
+    display: block;/*Bu elemanı bir blok haline getirir (alt satırı kaplar).*/
+    font-size: 2.2rem;/*Değerlerin büyük görünmesini sağlar*/
+    font-weight: 800;/*Yazıyı daha kalın yapar → vurgu artar.*/
+    color: var(--dark);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    /*transform özelliği 0.3 saniyede animasyon olur.
+    Animasyonun “hızı / eğrisi” cubic-bezier ile özelleştirilmiş. Cubic-bezier şu demektir: --> Animasyon normalden daha esnek, daha “zıplayan” bir hareket yapar.*/
+}
+
+
+
+.metric-card:hover .value { transform: scale(1.2); }/*Kullanıcı metric-card üzerine gelince (hover) İçindeki .value (sayı) %20 büyür.Elemanı hem yatay hem dikey 1.2 kat büyütür. Bu şu etkiyi oluşturur: Sonuç sayıları kullanıcı üzerine gelince büyüyerek animasyonlu vurgu yapar.*/
+.metric-card .label { font-size: 0.9rem; color: #b2bec3; }/*Label genelde küçük açıklama yazısıdır.0.9rem Ana değerden daha küçük Soluk gri --> Önemsiz ama destekleyici bilgi gibi görünür.  */
+
+.results-container { animation: slideUp 0.8s ease-out; }
+/*slideUp --> animasyonun adı (CSS’te başka yerde tanımlı) , 0.8 saniyede tamamlanır ease-out --> başlangıç hızlı, bitiş yavaş (kibar bir görünme efekti)*/
+
+
+
+
+
+
+
+
+/* Tablo ve Grafik */
+.charts-tables-grid {/*Bu bir grid konteyneri (kutu düzeni).Yani içinde grafik (chart) ve tablo (table) kutularını yan yana düzenlemek için kullanılır.*/
+    display: grid;/*Bu element artık CSS Grid Layout sistemini kullanır.Grid, iki veya daha fazla elemanı matris şeklinde düzenlemek için kullanılan bir sistemdir.Flexbox’tan farklıdır → iki boyutlu (hem satır hem sütun) düzen sağlar. Grafik ve tablo kutuların dizileceği alan burasıdır.*/
+    grid-template-columns: 1fr 1.5fr;/*Bu en önemli satırdır. --> Nedir? Grid içinde iki sütun oluşturur: Birincisi: 1fr     İkincisi: 1.5fr               --> fr nedir? fr = fraction unit (oran birimi) Yani “alanın şu kadar parçasını kapla” anlamına gelir.
+    Bu ne demek 1. sütun 1 birim yer  2. sütun 1.5 birim yer toplam 2.5 birim Bu durumda:sütun → toplam genişliğin %40'ı sütun → toplam genişliğin %60'ı  Yani grafik alanı büyük, tablo alanı biraz daha geniş görünür.*/
+    gap: 30px;/*Grid içindeki sütunlar veya satırlar arasındaki boşluğu ayarlar.Burada grafik ve tablo arasına 30px mesafe koyuyor.*/
+}
+
+
+
+.chart-box, .table-box {/*CSS’te iki sınıfa aynı stil verilecekse her seferinde tekrar yazmamak için virgülle ayırıp tek kere yazıyoruz.*/
+    background: white; /*Kutunun arka planı beyaz.*/
+    padding: 20px;/*İç boşluk oluşturur. İçerik kenarlara yapışmaz.*/
+    border-radius: 15px;/*Köşeleri yuvarlatır. Kart şeklinde modern bir tasarım sağlar.*/
+    box-shadow: var(--shadow);/*CSS değişkeni --shadow ile kutuya gölge eklenir.3D hafif kabarık kart etkisi verir
+    Örnek bir shadow değişkeni şöyle olabilir:
+
+     :root {
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+     }
+
+*/
+    transition: background-color 0.3s;/*Arka plan rengindeki değişiklikler (hover gibi) 0.3 saniyede yumuşak geçişle olur. Ani renk değişimi yerine hoş bir animasyon sağlar.*/
+}
+
+
+
+
+.table-header {
+    display: flex;/*Ne yapar: Bu konteynerin içindeki doğrudan çocukları (ör. başlık <h4> ve .export-btn) bir satırda (tek eksende) düzenler — yani yatayda yan yana dizer. .table-header tipik olarak sol tarafta başlık, sağ tarafta bir buton/araçlar gösterir. Flex bunu kolayca yapar.*/
+    justify-content: space-between;/*Flex içindeki ilk çocuk sola, son çocuk sağa yerleşir; aradaki boşluğu otomatik açar. Başlık sola yaslanır, export butonu sağda gözükür — yaygın ve temiz bir düzen. Not: Eğer üç öğe olsaydı, bunlar eşit aralıklı yerleşir*/
+    align-items: center;/*Flex içindeki öğeleri dikeyde ortalar (yükseklikleri farklı olsa bile).Başlık ve buton aynı yatay çizgide, dikeyde ortalanmış görünür — görsel tutarlılık sağlar.*/
+    margin-bottom: 10px;/*.table-header ile altındaki tablo/konteyner arasına 10px dış boşluk koyar.Neden: Üst bölüm ile içerik arasında nefes alan bir boşluk oluşturarak okunabilirliği artırır.*/
+}
+
+
+
+.export-btn {
+    background-color: #10B981;/*Butonun arka plan rengini belirler.*/
+    color: white;/*Buton üzerindeki metin/gösterge rengini beyaz yapar.*/
+    border: none;/*Butonun varsayılan kenarlığını kaldırır (tarayıcıların default button border'ı).*/
+    padding: 5px 15px;/*Butonun iç boşluğunu ayarlar: üst-alt: 5px (dikey) sağ-sol: 15px (yatay)*/
+    border-radius: 5px;/*Köşeleri hafifçe yuvarlatır.*/
+    cursor: pointer;/*Ne yapar: Fare üstüne geldiğinde imleci el işaretine çevirir — kullanıcıya "tıklanabilir" olduğunu gösterir.*/
+    font-size: 0.9rem;/*Metin boyutunu ayarlar*/
+    transition: background 0.2s;/*Arka plan renginde bir değişiklik (hover/focus gibi) 0.2s içinde yumuşatılarak gerçekleşir.*/
+}
+
+
+.export-btn:hover { background-color: #059669; }/*bir classtır. HTML'de class="export-btn" diye kullandığın elemanı ifade eder.   :hover: üzerine fare gelince çalışır.*/
+
+.table-scroll { max-height: 300px; overflow-y: auto; margin-top: 15px; }
+/*Kutunun yüksekliğini en fazla 300px ile sınırlar.
+overflow-y: auto; İçerik 300px’i aşarsa otomatik dikey scroll (kaydırma) çıkar
+margin-top: 15px; Üstten boşluk bırakır.*/
+
+table { width: 100%; border-collapse: collapse; }/*width: 100% Tablonun bulunduğu kutunun tamamını kaplar. border-collapse: collapse; Tablo hücreleri arasındaki boşlukları kaldırır, çizgileri birleştirir*/
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }/*Bu “virgüllü kullanım” şu demek: “th VE td elemanlarına aynı CSS özelliklerini uygula.” padding: 12px; → Hücre içi boşluğu 12px yapar. text-align: left; → Yazıyı sola yaslar.border-bottom: → Her satırın altına ince gri çizgi çeker.*/
+th { background: #f8f9fa; position: sticky; top: 0; }/*
+
+position: sticky; Yukarı kayarken başlık sabit kalır.
+
+top: 0;Sabit duracağı yer ekranın en üstüdür.
+
+ Böylece tabloyu aşağı kaydırınca th satırı sabit kalır → sticky header efekti.*/
+
+
+/* şimdi burada başta bazen nokta var bazen yok
+
+|    CSS Seçici    |       Ne Demek?      |           Örnek               |
+| ---------------- | -------------------- | ----------------------------- |
+| **.className**   | Class seçer          | `.export-btn`                 |
+| **#idName**      | ID seçer             | `#headerTitle`                |
+| **tagName**      | HTML etiketini seçer | `table`, `th`, `td`, `div`    |
+| **pseudo-class** | Durum seçer          | `:hover`, `:focus`, `:active` |
+
+
+O yüzden table, th, td başında nokta YO K.
+Çünkü bunlar HTML tag selector:
+
+
+table { ... }   → tüm <table> etiketleri için
+th { ... }      → tüm <th> etiketleri için
+td { ... }      → tüm <td> etiketleri için
+Bunlar class değil → o yüzden başlarında nokta yok.
+*/
+
+
+
+
+
+
+
+
+
+
+
+/* =========================================
+   6. GEÇMİŞ BÖLÜMÜ VE TABLO
+   ========================================= */
+
+/*.alt-bg sınıfı uygulanan bölümlerin arka planını açık gri/mavi yapıyor ve arka plan değişirse (ör. tema değişimi) bu değişimi 0.3s’de yumuşatarak gösteriyor.*/
+.alt-bg { background-color: #f1f2f6; transition: background-color 0.3s; }/*hafif gri-mavili bir ton*/
+/*Arka plan rengi değişirse (ör. tema değişimi dark/light), bu değişimin 0.3 saniyede yumuşak (animasyonlu) olmasını sağlar. Neden: Ani renk değişimleri gözü yorabilir; kullanıcı deneyimini pürüzsüzleştirir.*/
+
+
+.styled-table {/*tablo kartı genel görünümü   Amaç Tablonun tek başına bir “kart” gibi (beyaz zemin, gölge, yuvarlak köşe) görünmesini sağlamak. Okunabilir, modern bir tablo görünümü oluşturur.*/
+    width: 100%;/*tablonun, kapsayıcısının (parent) yatay alanını tamamen kaplamasını sağlar.*/
+    background: white;/*Tabloyu beyaz bir karta dönüştürür; hücreler, yazılar beyaz zemin üzerinde okunur.*/
+    border-radius: 10px;/*Kart köşelerini yuvarlatır. Ancak tablo hücreleri başlık, satır renkleri köşeye taşarsa overflow: hidden gerek.*/
+    overflow: hidden;/*Kartın yuvarlak köşesinin dışına taşan çocuk elemanları kırpar. Ör: thead arka planı kart köşesinden taşmasın diye.*/
+    box-shadow: var(--shadow);/*Kartın etrafına gölge verir. var(--shadow) değişkeni genelde 0 10px 30px rgba(0,0,0,0.1) gibi tanımlıdır.*/
+    border-collapse: collapse;/*Tablonun iç sınırlarını tekleştirir; hücre kenar çizgileri birleştirilir. Not: border-collapse, hücre kenar boyutlarını etkiler; köşe kırpma (border-radius) ve overflow ile birlikte test et.*/
+    margin: 25px 0;/*Üst ve alt boşluk: 25px. Tabloyu çevreleyen içerikten ayırır.*/
+    font-size: 0.9em;/*Tablodaki metinleri hafif küçültür (0.9 × parent font-size). em burada kapsayıcıya göre ölçeklenir.*/
+    transition: background-color 0.3s;/*Tema değişimlerinde ya da hover’larda arka plan rengi değişiyorsa bunu yumuşatır.*/
+}
+
+
+
+/* Tablo Başlık Stili (Beyaz Yazı) */
+.styled-table thead tr {
+    background-color: var(--primary);/*başlık koyu renk, yazı beyaz; kontrast okunurluğu sağlar.*/
+    color: #ffffff;
+    text-align: left;/*başlık metinleri sola yaslı.*/
+}
+
+
+
+.styled-table th {
+    background-color: var(--primary);
+    color: #ffffff;
+    padding: 12px 15px;
+}
+
+
+/*Gövde (tbody) satırları — sınırlar ve zebra efekt*/
+.styled-table tbody tr { border-bottom: 1px solid #dddddd; }/*styled-table --> Senin özel tablo class’ının adı.   tbody --> Tablonun gövde kısmı — başlık olmayan satırlar. tr --> Her satır (table row).
+border-bottom
+
+Satırın altına bir çizgi ekler.    1px → çizginin kalınlığı        solid → düz çizgi     #dddddd → açık gri renk        Amaç: Satırların birbiriyle karışmasını önlemek, her satırı görsel olarak ayırmak.*/
+.styled-table tbody tr:nth-of-type(even) { background-color: #f3f3f3; }
+
+/*nth-of-type(even)
+
+Burada güçlü CSS seçici kullanıyorsun:
+--> Sadece çift numaralı satırları seçer.
+1. satır → odd
+2. satır → even
+3. satır → odd
+4. satır → even
+
+ Amaç:
+“Zebra çizgisi” efekti.*/
+
+
+.styled-table tbody tr:last-of-type { border-bottom: 2px solid var(--primary); }
+/*last-of-type Son satırı hedefler (son tr).
+
+border-bottom Alt tarafına sınır çizgisi koyar.
+2px → diğer satırlara göre daha kalın      solid → düz çizgi       var(--primary) → temadaki ana renk*/
+
+
+/* KISA ÖZET — En Mantıklı Açıklama*/
+
+/*
+                    Kod                                           Açıklama                                                                                     |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| `.styled-table tbody tr`                   | Her satırın altına ince çizgi ekler (satırlar arasına ayırıcı).                              |
+| `.styled-table tbody tr:nth-of-type(even)` | Çift numaralı satırları açık gri yaparak zebra görünümü oluşturur — okunabilirliği arttırır. |
+| `.styled-table tbody tr:last-of-type`      | Son satıra daha kalın ve tema renkli bir çizgi koyar—tablonun bitişini belirgin yapar.       |
+
+*/
+
+
+
+
+
+
+
+
+
+/* =========================================
+   7. GEÇMİŞ ÖZET KARTLARI (YENİ EKLENEN)
+   ========================================= */
+.history-summary {/*Bölüm kapsayıcısı*/
+    margin-top: 50px;/*.history-summary elemanının üstünde, kendisinden önce gelen eleman ile arasında 50 piksel dış boşluk bırakır.*/
+    padding-top: 30px;/*.history-summary içindeki içeriğin üst kısmına 30px iç boşluk bırakır.*/
+    border-top: 2px dashed #dcdcdc;/*kapsayıcının üst kenarına 2px kalınlığında, kesikli (dashed) bir çizgi ekler; rengi #dcdcdc açık gri.*/
+}
+
+.history-summary h3 {/*Bölüm başlığı stili*/
+    text-align: center;/*<h3> içindeki metni yatayda ortalar.*/
+    margin-bottom: 30px;/*başlıkla altındaki içerik (grid) arasında 30px boşluk bırakır.*/
+    color: var(--primary);/*başlık rengini tema değişkeni --primary ile verir*/
+    font-size: 1.5rem;/*font boyutunu kök (root) fontuna göre 1.5 katına çıkarır. (Genelde 1rem = 16px ise 24px olur.)*/
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);/*grid içinde 4 sütun oluşturur; her sütun eşit genişlikte 1fr (fraction unit) pay alır.Detay: repeat(4, 1fr) aynı şeyin tekrarıdır --> 1fr 1fr 1fr 1fr. Neden: 4 özet kartını yatayda eşit olarak dizmek için ideal.*/
+    gap: 20px;/*grid hücreleri (kartlar) arasında hem satır hem sütun boşluğunu 20px olarak ayarlar.Neden: kartların birbirine yapışmasını engeller; düzeni nefesli yapar.*/
+}
+
+.summary-card {
+    background: white;
+    padding: 20px;/*Kartın iç boşluğunu her tarafta 20px yapar. İçerik kenarlara yapışmaz; kart “dolgun” görünür.*/
+    border-radius: 12px;/*Kartın köşelerini 12px ile yuvarlatır — modern, yumuşak görünüm.*/
+    display: flex;/*Kart içinde muhtemelen iki ana öğe var: ikon ve bilgi (label + value). flex ile bu iki öğeyi yan yana hizalayabilirsin.*/
+    align-items: center;/*Flex içindeki öğeleri dikey eksende orta hizalar. Böylece ikon ve metin aynı yükseklikte durur.*/
+    gap: 15px;/*Flex çocukları (ikon ile metin) arasında 15px boşluk bırakır.*/
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);/*Kartın altına hafif bir gölge uygular:  0 → yatay offset (gölge sağa/sola kaymaz)
+4px → dikey offset (gölge 4px aşağıda)
+15px → blur radius (gölge ne kadar yayılır)
+rgba(0,0,0,0.05) → renk: siyah %5 opaklık (çok hafif)
+Neden: kartı zemininden hafifçe kaldırır; derinlik hissi verir.*/
+
+    transition: transform 0.3s; /*Kart üzerinde transform değiştiğinde (ör. hover ile translateY), değişim 0.3 saniyede yumuşak olur.*/
+}
+
+
+.summary-card:hover { transform: translateY(-5px); }/*Kart fare ile üzerine gelindiğinde " 5px yukarı doğru "  hareket eder (görsel olarak “kalkma” efekti).Kart fare ile üzerine gelindiğinde 5px yukarı doğru hareket eder (görsel olarak “kalkma” efekti).*/
+
+
+
+/* 1) Genel Mantık
+Bu dört satır aslında aynı CSS kuralının farklı renk değişkenleriyle uygulanmış hâlidir.
+.summary-card.total → toplam veri kartı
+.summary-card.pos → pozitif sonuç kartı
+.summary-card.neg → negatif sonuç kartı
+.summary-card.neu → nötr sonuç kartı
+
+Hepsinin amacı kartın alt tarafına renkli bir vurgu çizgisi eklemek.
+
+Bu çizgi:
+
+   - 4px kalınlıkta
+   - solid (düz) çizgi
+   - var() ile temadan gelen renk ile boyanır.
+
+Bu, Dashboard temalarında sık kullanılan bir "kategori vurgulama" tekniğidir.*/
+
+/* Kart Alt Çizgi Renkleri */
+.summary-card.total { border-bottom: 4px solid var(--primary); }/*.summary-card.total Bu seçim, hem .summary-card hem .total sınıfını aynı anda taşıyan elementleri hedefler. Yani şu HTML bu stili alır: <div class="summary-card total">...</div>
+
+border-bottom:
+Bu CSS özelliği 3 parametre içerir:
+
+   -border-width → çizgi kalınlığı
+   -border-style → çizgi tipi
+   -border-color → çizgi rengi
+Bu satırda hepsi tek satırda yazıldı.
+
+4px Alt kenar çizgisinin kalınlığı.
+
+solid  Çizginin tipi.  solid → düz çizgi.  Alternatifler:  dashed → kesikli  dotted → noktalı   double → çift çizgi
+
+var(--primary) Renk, CSS değişkeninden gelir Bu sayede tema değiştiğinde tüm kartlar otomatik güncellenir.
+*/
+
+.summary-card.pos { border-bottom: 4px solid var(--pos); }/*Bu satır sadece POSITIF (pozitif) kartlara uygulanır. var(--pos)  Pozitif sonuçların tema rengi. Genelde yeşil tonları olur:*/
+
+.summary-card.neg { border-bottom: 4px solid var(--neg); }/*Bu satır NEGATİF kartlar içindir. var(--neg) Negatif sonuç rengi. Genelde kırmızı tonlar:*/
+.summary-card.neu { border-bottom: 4px solid var(--neu); }/*Bu satır NÖTR sonuç kartlarının alt çizgisi içindir. var(--neu) Nötr kategori rengi. Genelde gri veya mavi tonları:*/
+
+
+
+
+
+/* Kart İkonları */
+.s-icon {
+    width: 45px; height: 45px; /*Elemanın genişliğini 45 piksel yapar.   px ekrandaki gerçek piksel ölçüsüdür.Bu ikonlar kare şeklinde olacağı için width ve height eşit. height: 45 px Elemanın yüksekliği 45 piksel.Kare olması için width ile aynı değer verilir.*/
+    border-radius: 50%;/*Elemanın köşelerini %50 yuvarlar.Genişlik ve yükseklik eşit olduğundan tam bir yuvarlak (daire) olur. Eğer width > height olsaydı oval olurdu.*/
+    display: flex;/*İçerideki yazı veya ikonun hizalanabilmesi için esnek bir kutu modeli oluşturur.*/
+    align-items: center;/*Flexbox dikey hizalama özelliği. İçeriği dikeyde (yukarı–aşağı) ortalar.*/
+    justify-content: center;/*Flexbox yatay hizalama özelliği.İçeriği yatayda (sol–sağ) ortalar.Bu iki özellik sayesinde ikon, dairenin tam ortasına oturur.*/
+    font-size: 1.2rem;/*İkon veya metnin yazı boyutu.rem = root em demektir.*/
+    color: white;
+}
+
+/*RENK ATAMALARI --> Bu satırlar ikonun arka plan rengini, kartın türüne göre belirler.*/
+.summary-card.total .s-icon { background: var(--primary); }/*Eğer bir kartın class’ı summary-card total ise Onun içindeki .s-icon için primary renk uygulanır.Yani “Total” (Toplam) card mavi görünür.*/
+.summary-card.pos .s-icon { background: var(--pos); }/*Kartın class’ı pos ise İkonun arka planı --pos rengi olur (genelde yeşil) Pozitif analizleri temsil eder.*/
+.summary-card.neg .s-icon { background: var(--neg); }/*Kartın class’ı neg ise Arka plan --neg (kırmızı tonları) Negatif analizleri temsil eder.*/
+.summary-card.neu .s-icon { background: var(--neu); }/*Kartın class’ı neu ise Arka plan --neu (gri tonları) Nötr analizleri temsil eder.*/
+/*.s-icon Tüm ikonların temel görünümü (45px daire)
+.summary-card.total .s-icon  Bu cümle aslında şunu ifade eder:
+class="summary-card total" olan bir kartın içindeki class="s-icon" olan ikonu seç.
+
+ TAM ÖRNEK HTML
+<div class="summary-card total">
+    <div class="s-icon">📊</div>
+    <div class="info">Toplam Analizler</div>
+</div>
+
+Çünkü bu bir hiyerarşi seçici:
+
+|         Parça                          Anlamı                  |
+| --------------------- | -------------------------------------- |
+| `.summary-card.total` | Üstteki kart elemanı                   |
+| `.s-icon`             | Bu kartın içindeki ikon                |
+| (boşluk)              | CSS’de “içinde bulunan” anlamına gelir |
+
+
+ KISA ÖZET (Akılda Kalıcı)
+
+.summary-card → Kart sınıfı
+
+.total → Kart türü/ek sınıf
+
+.s-icon → Karttaki yuvarlak ikon
+
+.summary-card.total .s-icon →  "Total kartın içindeki ikonu seç"
+
+
+*/
+
+
+
+
+
+/* Kart Değerleri */
+.s-val {/*.s-val genelde karttaki büyük, dikkat çekici sayı için kullanılır (ör. toplam kayıt sayısı, pozitif sayısı).*/
+
+    display: block;/*Bu elemanı blok elemanı yapar.Blok eleman → kendi satırını tamamen kaplar.Yani .s-val her zaman ayrı satırda büyük bir değer olarak görünür. Neden? Büyük sayılar genelde tek başına durur.
+   Bu ne demek? Element bulunduğu satırın tamamını kaplar. İçeriden sonra gelen diğer elementler alt satıra geçer. Kendisi genişlemesini tam genişlik olarak düşünür (100%). Aynı satırda başka eleman duramaz.
+
+ Günlük hayattan örnek:
+Boş bir kutu düşün → kutuya bir şey koymasan bile bir satırı tamamen kaplar.
+
+HTML’de “div” gibi blok elemanlar hep böyle çalışır.
+
+
+--> .s-val neden block yapıldı?
+Çünkü:
+
+.s-val genelde büyük bir sayı gösterir (ör: 3452)
+Bu büyük sayı tek başına bir satırda dursun istenir.
+Yanına etiket veya yüzde yazısı gelmesin → hepsi alt satırlara insin.
+Bu yüzden display: block → "Bu eleman tek başına bir satır kaplasın."
+
+*/
+    font-size: 1.5rem; /*Yazı boyutu root fontun 1.5 katı olur.Varsayılan root = 16px → 1.5rem ≈ 24px.Büyük görünmesi için.*/
+    font-weight: 800;/*Yazıyı çok kalın yapar. 100–900 arası ağırlık vardır → 800 = "extra bold". Neden? Büyük sayının göze çarpması amaçlanır.*/
+    color: var(--dark);
+}
+
+.s-lbl { font-size: 0.85rem; color: #888; } /* .s-lbl { ... } — Küçük açıklama/etiket yazısı
+font-size: 0.85rem; Yazı boyutu root’un %85’i yani yaklaşık 13–14px. Üstteki büyük sayıya göre daha küçük görünür.*/
+
+/* Yüzdelik Yazısı Stili (Küçük ve Gri) */
+
+.pct-text {
+
+    font-size: 0.6em;/* “em” → ebeveynin font boyutuna göre hesaplanır. Eğer yanında olduğu değer 20px ise: 0.6em → 12px olur. Yani bu yüzdelik değer kendiliğinden küçülür, tasarım uyumu sağlar.*/
+    opacity: 0.8;/* %80 görünürlük → daha soft görünüm.Yani sayının yanında “hafif” duran bilgi.*/
+    margin-left: 5px;/* Soldan 5px boşluk bırakır. Yanındaki sayı ile bitişik durmasın diye.*/
+    font-weight: 400;/*Normal kalınlık.Yüzde değerinin çok dikkat çekmemesi hedeflenir.*/
+    vertical-align: middle;/*İçinde bulunduğu satırdaki diğer elemanlarla dikey olarak ortalanır.Büyük sayı + küçük yüzde → farklı yükseklik sorununu çözer.*/
+
+}
+/* KISA VE NET ÖZET
+
+|      Class      |     Ne işe yarar?     |              En önemli özellik               |
+| --------------- | --------------------- | -------------------------------------------- |
+|     .s-val      | Büyük değeri gösterir | `display: block` → bir satırı tamamen kaplar |
+|     .s-lbl      |    Etiket/açıklama    |             Küçük ve gri yazı                |
+|    .pct-text    | Yüzdelik küçük bilgi  |     0.6em küçük boy, opacity ile yumuşak     |
+
+*/
+
+
+
+
+
+
+/* =========================================
+   8. LOADER VE ANİMASYONLAR
+   ========================================= */
+.loader { text-align: center; padding: 20px; }/*text-align: center; Loader içindeki içerikleri yatayda ortaya hizalar. İçerideki circle noktalarını merkeze çeker.padding: 20px; loader kutusunun iç boşluğunu 20px yapar.Yani içerikle kutunun kenarı arasında 20px boşluk oluşur.*/
+
+
+.circle {/*Noktaları temsil eden CSS sınıfı*/
+    display: inline-block;/*Yan yana durabilirler.--> Bu yüzden üç nokta yan yana durur.
+
+   display: inline-block, bir HTML elemanına hem satır içinde davranma hem de blok gibi özellikler alma yeteneği verir.
+Kısaca:
+"Yan yana durabilen ama width–height verebildiğin eleman olur."
+inline (satır içi)
+------------------------
+Özellikleri:
+Yan yana dizilir.
+Satırı kırmaz → aynı satırda durur.
+width ve height verilemez (yok sayılır).
+
+Örnek: <span>, <a>
+
+
+block (blok eleman)
+---------------------
+Özellikleri:
+Tam satırı kaplar.
+Alt satıra iner.
+width-height verilebilir.
+Örnek: <div>, <p>
+
+
+inline-block (iki özelliğin birleşimi)
+
+Bu tam olarak şudur:
+
+|           Özellik             |           inline-block          |
+| ----------------------------- | ------------------------------- |
+| Yan yana durabilir mi?        | Evet (inline gibi)              |
+| width-height verebilir misin? | Evet (block gibi)               |
+| Satırı kaplar mı?             | Hayır, inline gibi davranır     |
+
+ Neden gerekli?
+
+Normalde:
+
+  inline → width-height veremezsin
+  block → yan yana koyamazsın
+
+Ama bazı durumlarda yan yana duran ama boyutu kontrollü elemanlar istersin.
+
+Örneğin:
+    butonlar
+    ikonlar
+    küçük kutular
+    loading noktaları (.circle)
+    kartlar
+
+Bu yüzden inline-block çok kullanılır.
+
+
+*/
+
+    width: 15px; height: 15px;/*Her circle’ın boyutu 15x15 px. Küçük kare bir kutu.*/
+    background: var(--primary);
+    border-radius: 50%;/*Kutuyu daire haline getirir.  Çünkü genişlik ve yüksekliğin 50% 'si kadar kenarlar yuvarlanır.*/
+    animation: bounce 0.6s infinite alternate;/*Bu çok önemli:   bounce → Animasyonun adı (CSS’te başka yerde tanımlanmış)  0.6s → Animasyonun süresi   infinite → Sonsuz kez tekrar eder   alternate → Gidiş-geliş animasyonu (yukarı-aşağı zıplama)*/
+    margin: 0 5px; /*Sağa ve sola 5px boşluk verir.  Üst-alt 0px.*/
+}
+
+
+.circle:nth-child(2) { animation-delay: 0.2s; }/*2.circle için animasyonu geciktirir.
+
+0.2 saniye sonra başlar.
+
+
+:nth-child(X) NEDİR?
+Bir HTML içindeki kaçıncı sıradaki çocuk elemanı seçer.
+
+Örnek HTML:
+
+<div class="loader">
+    <div class="circle"></div>   <!-- nth-child(1) -->
+    <div class="circle"></div>   <!-- nth-child(2) -->
+    <div class="circle"></div>   <!-- nth-child(3) -->
+</div>
+
+*/
+
+
+
+.circle:nth-child(3) { animation-delay: 0.4s; }/*3.circle için animasyon 0.4 saniye gecikmeli başlar.*/
+
+/*NEDEN BUNLAR?
+
+    -nokta hemen zıplar,
+
+    -nokta biraz geç zıplar,
+
+    -nokta daha geç zıplar.
+
+Bu da şöyle bir animasyon etkisi oluşturur:
+
+•   •   •
+Yukarı çık → sonra 2.’si çık → sonra 3.’sü çık  */
+
+
+
+
+
+/*@ ile başlayan kurallara at-rule denir (CSS özel kuralları).
+@keyframes, @media, @font-face gibi at-rule'lar tarayıcıya “bana özel bir davranış tanımla” der.
+Burada @keyframes ile bir animasyonun karelerini (frame’lerini) tanımlıyoruz.
+
+isim = animasyonun adı (ör. fadeInUp, bounce).
+from = aynı anlamlı 0% (ilk kare).
+to = aynı anlamlı 100% (son kare).
+Ara anahtarlar: %25, %50, %75 ile ara durumlar tanımlanabilir.
+
+@keyframes sadece "ne olacağını" tanımlar; animasyonu gerçekten çalıştırmak için öğeye animation veya animation-name / animation-duration vb. ile bağlaman gerekir.*/
+
+/*
+
+@keyframes = animasyon tanımı (isimlendir, kareleri belirt).
+from / to = başlangıç ve bitiş (0% / 100%).
+
+*/
+
+@keyframes fadeInUp {
+
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+
+}
+/*Amaç: Elemanı aşağıdan yukarı doğru hafifçe kaydırarak ve opaklığını artırarak görünür yapmak.
+from: opacity: 0 → başlangıçta tamamen şeffaf (görünmez).
+from: transform: translateY(20px) → başlangıçta element 20px aşağıda konumlanmış (ekrandan biraz “aşağıda”).
+to: opacity: 1 → sonunda tamamen görünür.
+to: transform: translateY(0) → sonunda normal konumuna geri gelir.
+
+Etkisi: öğe yukarı doğru sürüklenerek (slide up) ortaya çıkar ve opaklığı artar — hoş bir “giriş” efekti.*/
+
+
+
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }/*Amaç: Sade opaklık animasyonu — eleman yavaşça görünür.Kullanım: Basit görünme efektleri için; pozisyon değiştirmez, sadece görünürlüğü artırır.*/
+
+@keyframes bounce { to { transform: translateY(-15px); } }/*Ne yapıyor: to noktası tanımlanmış; from yok — tarayıcı fromu mevcut/varsayılan durum (genelde transform: none) olarak alır.Yani: animasyon başlangıcında transform: none, sonunda transform: translateY(-15px) (yukarı 15px).*/
+
+/*Çoğunlukla bu animasyon animation-direction: alternate ile birlikte kullanılır (senin .circle örneğinde olduğu gibi). alternate ile öğe bir defasında yukarı gider (to), sonra geri gelir (from), sonra tekrar gider → "zıplama" hissi verir.*/
+
+
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }/*Amaç: fadeInUp'a benzer ama daha belirgin bir mesafe (40px) kullanıyor → öğe daha uzaktan kayarak gelir.
+
+Kullanım: Sayfada daha büyük elemanların ortaya çıkışı için (ör. sonuç kutusu, panel).*/
+
+/*from ve to ne demek — kısa
+
+from = animasyonun başlangıç durumu (aynı 0%).
+to = animasyonun bitiş durumu (aynı 100%).
+
+Ara durumlar istersen % ile açıkça belirtebilirsin:
+
+@keyframes example {
+  0% { ... }
+  50% { ... }
+  100% { ... }
+}
+
+*/
+
+
+/*transform: translateY(...) nedir
+
+transform CSS özelliği elemanın konum, ölçek, döndürme gibi görsel transformasyonlarını kontrol eder.
+translateY(20px) → elemanı dikey eksende 20 piksel aşağı kaydırır.
+Pozitif değer → aşağı, negatif → yukarı.
+
+translateX(...) yatay, translateZ(...) 3D eksen.
+
+
+
+opacity nedir — net
+
+    -opacity: 0 = tamamen şeffaf (görünmez).
+    -opacity: 1 = tamamen opak (görünür).
+    -0 ile 1 arasında değerler yarı saydamlık verir.
+    -opacity animasyonu da performans olarak iyi kabul edilir (transform ile birlikte).
+
+*/
+
+
+
+
+
+footer {/*footer — bu bir etiket seçici HTML’de <footer>...</footer> etiketine uygulanır (sayfanın alt kısmındaki bölüm).*/
+    text-align: center;/*Footer içindeki inline/inline-block metinleri ve satır içi elemanları yatayda ortalar. Yani <p> veya satır içindeki ikon+yazı ortaya hizalanır.*/
+    padding: 30px;/*Footer içindeki içeriğin kenarlardan 30px içeride olmasını sağlar (üst-sağ-alt-sol tüm taraflara 30px). Bu footer’ın yüksek ve “hava alanı” olan bir görünüm almasını sağlar.*/
+    background: var(--dark);/*Footer arka plan rengini --dark değişkeninden alır (ör. koyu gri/siyah).*/
+    color: #b2bec3;/*Footer içindeki metinlerin rengini belirler (açık gri-mavi).*/
+    margin-top: 50px;/*Footer ile üstündeki içerik arasında 50px dış boşluk bırakır.Sayfanın içeriğinin footer’dan uzak durmasını sağlar.*/
+
+}
+
+
+
+
+
+
+
+/* =========================================
+   9. DARK MODE (KARANLIK MOD) AYARLARI
+   ========================================= */
+
+/*HTML’de body, sayfanın tüm görünen içeriğini kapsayan ana etikettir.
+Örnek HTML:
+
+<body>
+    <h1>Merhaba</h1>
+    <p>Bu sayfanın içeriği body içindedir.</p>
+</body>
+
+Yani <body> etiketi = ekranda gördüğün tüm içerik.
+CSS’de body yazarsan → tüm sayfayı seçmiş olursun.
+
+
+.dark-mode bir CSS sınıfıdır (class).
+
+Buradaki nokta . işareti → “class seçiyorum” demektir.
+Yani .dark-mode = HTML’de class="dark-mode" atanmış olan bir element demektir.
+
+
+Peki body.dark-mode ne demek?
+Bu iki şeyin birleşmiş hâlidir:
+
+body.dark-mode = hem BODY etiketi hem de class="dark-mode" olan body'yi seç.
+Yani sayfanın karanlık mod aktifken kullanılacak CSS kurallarıdır.
+
+Kısaca:
+ Eğer kullanıcı dark mode'u açarsa:
+<body> elementine dark-mode sınıfı eklenir → tüm sayfa bu CSS kurallarına geçer.
+
+*/
+
+/*Bu blok CSS değişkenlerini (custom properties) tanımlar*/
+body.dark-mode {
+
+    --bg: #0f172a;/*Sayfanın arka plan rengini ifade eden değişken.*/
+    --sidebar-bg: #1e293b;/*Sol menü / sidebar arka plan rengi.*/
+    --text: #f1f5f9;/*Metin (yazı) rengi → dark mode’da açık renk olur.*/
+    --glass: rgba(30, 41, 59, 0.95);/*Saydam cam efekti verilen kutular için kullanılan renk. rgba(30,41,59,0.95) → %95 opaklık, koyu lacivert ton.*/
+    --card-bg: #1e293b;/*Kartların (kutuların) arka planı.*/
+    --border-color: #334155; /*Kutu kenarları için kullanılan koyu gri çizgi rengi.*/
+
+/*Bu değişkenler nerede kullanılır?
+Örneğin:
+
+.card {
+    background: var(--card-bg);
+    color: var(--text);
+}
+
+ Eğer body → dark-mode ise, kartların rengi otomatik koyulaşır.
+ Eğer body → light mode ise başka değerler devreye girer.*/
+
+/*
+ ÖZET
+
+| Kısım                            | Açıklama                                               |
+| -------------------------------- | ------------------------------------------------------ |
+| `body`                           | Sayfanın tüm HTML içeriği                              |
+| `.dark-mode`                     | CSS sınıfı (dark tema aktif olduğunda eklenir)         |
+| `body.dark-mode`                 | Sadece dark mode aktif olduğunda çalışan CSS kuralları |
+| `--bg`, `--text`, `--card-bg`... | CSS değişkenleri → tema renkleri                       |
+
+
+
+
+ KISACA:
+
+- body.dark-mode → dark mode aktifken geçerli olan renk ayarlarıdır.
+- .dark-mode bir class’tır, body etiketine eklenir.
+- CSS değişkenleri tema rengini hızlıca değiştirmek için kullanılır.
+
+*/
+
+
+}
+
+/*body etiketine dark-mode sınıfı eklendiğinde (<body class="dark-mode">), body içindeki .navbar sınıfına sahip elementleri seçer.*/
+/*Bunu normal .navbar seçicisinden daha özgül (specific) yapar: sadece dark-mode aktifken uygulanır.*/
+
+
+body.dark-mode .navbar { background: var(--sidebar-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+/*var(--sidebar-bg) → daha önce body.dark-mode içinde tanımladığın değişken
+background kısa yazım; background-color yerine kullanılmış — tek arka plan rengi için ikisi aynı işlevi görür.*/
+
+/*box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+
+    box-shadow parametreleri şu sıradadır: offset-x offset-y blur-radius [spread] color.
+
+    Burada:
+
+        0 → yatay kayma (offset-x) = 0px (gölge sağa/sola kaymaz)
+        2px → dikey kayma (offset-y) = 2px (gölge biraz aşağıda)
+        10px → blur radius = 10px (gölge yayılımı)
+        rgba(0,0,0,0.3) → siyah, %30 opaklık
+
+Sonuç: navbar altında daha belirgin, koyu temaya uygun bir gölge.*/
+
+
+
+
+
+
+/*Birden fazla seçici gruplanması (kompakt açıklama)
+Virgülle ayrılmış satırlar aynı stil kurallarını her listedeki seçiciye uygular.
+Yani .glass-panel, .metric-card, .chart-box, .table-box, .styled-table ve .summary-card için ortak stiller uygulanacak.*/
+
+
+
+body.dark-mode .glass-panel,
+body.dark-mode .metric-card,
+body.dark-mode .chart-box,
+body.dark-mode .table-box,
+body.dark-mode .styled-table,
+
+
+body.dark-mode .summary-card {
+
+    background-color: var(--card-bg);/*Kart/panel arka plan rengini koyu tema değişkenine göre uygular.*/
+    color: var(--text);/*İçerik (metin) rengini koyu temadaki açık renk ile değiştirir.*/
+    border: 1px solid var(--border-color);/*Kart kenarına 1px, düz bir çizgi uygular; rengi --border-color (dark-mode’a özel) olur.
+                                        border kısa yazımı; border-width, border-style, border-color hepsi tek satırda verilmiş.*/
+
+}
+
+
+body.dark-mode input,/*devamı alttaki blok*/
+/*Bu bir seçici gruplama başlatır.
+
+body.dark-mode input,
+
+        -Burada virgül var → demek ki bu seçici tek başına değil, başka bir seçiciyle aynı stil kurallarını paylaşacak.
+
+        -Yani aslında şöyle bir anlamı var:
+
+“Dark mode açıkken, input elemanlarına ve (aşağıdaki seçiciye) aynı stili uygula.”
+
+- Virgülden sonra yeni satırda ikinci seçici gelir:  body.dark-mode select {
+
+Bu ikisi şu anlama geliyor:
+
+Hem input hem select, sadece dark-mode açıkken aynı görünüme sahip olacak.
+
+*/
+
+
+body.dark-mode select {/*şu anlama gelir: <body> etiketinin class’ı dark-mode olursa, içindeki tüm <select> elemanlarına bu stilleri uygula.<body class="dark-mode">
+    <input type="text">
+    <select>...</select>
+</body>
+
+*/
+    background-color: #334155;/*input ve select kutularının arka plan rengini belirler.*/
+    border-color: #475569;/*Kutuların çerçeve (border) rengini ayarlar.*/
+    color: white;
+
+/*Bu kodun anlamı tek cümlede:
+Dark mode aktif olduğunda, tüm input ve select elemanlarının arka planı koyu, kenarlığı açık koyu, yazı rengi de beyaz olur.*/
+}
+
+
+
+
+body.dark-mode .nav-links a { color: #cbd5e1; }
+/*body.dark-mode → Body etiketinin “dark-mode” sınıfı aktifken…
+.nav-links a → .nav-links class’ı içindeki a (link) etiketlerini seç.
+| Parametre         | Anlamı      | Etkisi                              |
+| ----------------- | ----------- | ----------------------------------- |
+| `color: #cbd5e1;` | Metin rengi | Link yazıları açık gri renge döner. |
+*/
+
+
+
+body.dark-mode .nav-links a:hover { color: var(--secondary); }
+/*a:hover → Linkin üzerine mouse gelince çalışır.
+
+body.dark-mode → Body etiketinin “dark-mode” sınıfı aktifken…
+.nav-links a → .nav-links class’ı içindeki a (link) etiketlerini seç.*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*bu yorumlar aşağıdaki kod satırları için*/
+/*Bu kullanım CSS’te birden fazla seçiciyi virgülle birleştirerek aynı stili uygulamak anlamına gelir.*/
+/*1. Seçici: body.dark-mode .metric-card .value
+
+Bu şu demek:
+        body etiketi dark-mode class’ına sahipken,
+        İçinde .metric-card class'lı bir eleman varsa,
+        Onun içinde .value class’ına sahip elementin…
+yazı rengini beyaz yap.
+
+
+2. Seçici: body.dark-mode .s-val
+Bu şu demek:
+
+    body dark-mode iken,
+    .s-val class’lı elementin…
+
+yazı rengini beyaz yap.
+
+
+                 Virgül neden var?
+
+Çünkü iki farklı seçici tek bir stil bloğunu paylaşsın diye.
+
+Yani şöyle yazmakla aynı anlama gelir:
+
+body.dark-mode .metric-card .value {
+    color: white;
+}
+
+
+body.dark-mode .s-val {
+    color: white;
+}
+
+Ama tekrar aynı color: white; yazılmasın diye virgül kullanarak tek blok yapıyoruz.
+
+
+ Özet mantık
+
+Virgül: “Hem bunu, hem bunu seç” anlamı.
+Aynı stil uygulanacak birden fazla seçici varsa virgülle ayırırsın.
+CSS bu iki seçiciye tek bir stil bloğu uygular.
+
+
+ Kısaca:
+Bu kullanım = birden fazla seçiciyi tek kuralda birleştirme.
+*/
+
+
+
+body.dark-mode .metric-card .value, body.dark-mode .s-val { color: white; }
+/* metric-card içindeki .value elemanlarının rengi beyaz.
+.s-val class’lı her şeyin de rengi beyaz. */
+
+
+body.dark-mode th { background-color: #0f172a; color: white; }
+/*Tablo başlıklarını (th) koyu lacivert arka plan + beyaz metin yapar.
+background-color: #0f172a;	Arka plan rengi.
+color: white;	Metin rengi.*/
+
+
+body.dark-mode .alt-bg { background-color: #111827; }
+/*.alt-bg sınıfı olan her şeyin arka planı daha koyu griye döner.*/
+
+
+body.dark-mode .styled-table tbody tr:nth-of-type(even) { background-color: #2d3748; }
+/*Tablodaki çift numaralı satırları değiştirir.
+nth-of-type(even) → 2, 4, 6… gibi satırlar.
+background-color: #2d3748; Çift satırlara özel arka plan rengi.*/
+
+
+body.dark-mode .styled-table tbody tr { border-bottom-color: #4a5568; }
+/*Tablonun her satırının alt çizgi (border-bottom) rengini değiştirir.
+border-bottom-color: #4a5568; Satır alt çizgisi gri olur.*/
+
+
+body.dark-mode .tabs { background-color: #334155; }
+/*Sekme alanının (tab container) arka planını koyu gri yapar.
+background-color: #334155; Tab container arka planı.*/
+
+body.dark-mode .tab-btn { color: #cbd5e1; }
+/*Sekme butonlarının yazı rengini açık gri yapar.*/
+
+body.dark-mode .tab-btn.active { color: white; background: var(--primary); }
+/*Aktif seçili tab butonu için özel stil*/
+
+
+/*
+                    Kısaca tüm parametrelerin teknik anlamları:
+
+| Parametre                        | Ne işe yarar?                                        |
+| -------------------------------- | ---------------------------------------------------- |
+| `color`                          | Metin rengini belirler.                              |
+
+| `background`, `background-color` | Arka plan rengini belirler.                          |
+
+| `border-color`                   | Kenarlık rengini belirler.                           |
+
+| `:hover`                         | Mouse üzerine gelince çalışır.                       |
+
+| `.class`                         | Belirli bir sınıfa sahip eleman.                     |
+
+| `element.class`                  | O element içinde class arama (ör: `body.dark-mode`). |
+
+| `var(--name)`                    | CSS değişkeni kullanımı.                             |
+
+| `nth-of-type(even)`              | Çift öğeleri seçer.                                  |
+*/
+
+
+
+
+
+
+
+/*
+CSS'teki * işareti
+*{
+        color :red
+}
+tüm HTML elemanlarını seçer.
+Yani sayfadaki her şeyi hedef alır:
+Kısacası:
+“Ne varsa hepsine uygula” demektir.
+
+
+*/

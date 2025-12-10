@@ -19,7 +19,7 @@ TWITTER_BEARER_TOKEN = "..."            # okuma izni  --->  “tweetleri okuyabi
 
 
 # --- YOUTUBE API AYARI ---
-YOUTUBE_API_KEY = ""
+YOUTUBE_API_KEY = "..."
 
 
 
@@ -93,3 +93,10 @@ NEWS_SITES = {
 }
 
 
+
+# --- POSTGRESQL VERİTABANI AYARLARI ---
+DB_HOST = "..."  # Genellikle localhost'tur
+DB_NAME = "..." # Oluşturduğun veritabanının adı
+DB_USER = "..." # PostgreSQL kullanıcı adın (varsayılan genelde postgres'tir)
+DB_PASSWORD = "..." # PostgreSQL şifren
+DB_PORT = "..." # PostgreSQL varsayılan portu

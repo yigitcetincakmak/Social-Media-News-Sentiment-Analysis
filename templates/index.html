@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentimentAI - Akıllı Duygu Analizi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet"><!--google fots sitesinden poppins yazı tipi linkini embed kısmından aldık bize verdiği link.  alt satıra bir link daha açıyorum-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"> <!-- Bu link sayesinde internetten ikon kütüphanesi CSS dosyası yüklenir    rel → “relationship” yani kaynağın sayfa ile ilişkisi ne demek -> Tarayıcıya şunu söylüyor: “Bu bağlantı bir CSS stil sayfasıdır”.Böylece tarayıcı bu dosyayı alıp sayfanın stilini uyguluyor. -->
+
+    <!-- Bu URL, Font Awesome kütüphanesinin CSS dosyasına işaret ediyor Font Awesome → web sayfalarında ikon kullanmayı sağlayan popüler bir kütüphane.Bu CSS dosyası olmadan <i class="fas fa-smile"></i> gibi ikonlar çalışmaz.bu gülen yüz buda <i class="fas fa-frown"></i> Üzgün    ,, <i> tag’ı ikonları göstermek için kullanılıyor, class ile hangi ikon olacağını söylüyorsun. Linki eklemezsen <i> sadece boş bir tag olur, ikon görünmez.-->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js → grafik çizmek için popüler bir JavaScript kütüphanesi. HTML’de bir canvas açarsın:  <canvas id="myChart" width="400" height="200"></canvas> gibi -->
+    <!--<script> → HTML’de JavaScript dosyalarını eklemek veya sayfa içinde JS yazmak için kullanılır JavaScript eklemek için HTML tagıdır. src="..." → harici bir JS dosyasının URL’si. Tarayıcı bu adrese gider, dosyayı indirir ve çalıştırır.-->
+    <!--Eğer src yoksa <script> tag’ının içine doğrudan JS yazabilirsin:
+
+    <script>
+             console.log("Merhaba Dünya!");
+    </script>
+
+Neden “harici bir JS dosyasına gidiyoruz”? Amaç: Sayfada hazır bir JavaScript kütüphanesini kullanmak.
+Chart.js gibi kütüphaneler önceden yazılmış, test edilmiş fonksiyonlar içerir, böylece sen her şeyi baştan yazmak zorunda kalmayız.
+
+Tarayıcı bu URL’ye gider -- dosyayı indirir -- sayfada kullanılabilir hâle getirir.
+
+Böylece grafik çizme gibi karmaşık işlevleri kendi başına yazmak yerine hazır fonksiyonları çağırabilirsin.
+
+Kullanmazsak Grafik çizme fonksiyonları çalışmaz, hata verir
+
+
+
+
+Neden <script src="..."></script> HTML içinde?
+
+<script> tag’ı HTML sayfasına JS eklemek için standart yoldur.
+
+Tarayıcı sayfayı yüklerken:
+
+HTML’i okur → sayfanın yapısını oluşturur
+
+<script> ile belirtilen JS dosyasını indirir → sayfada çalıştırır
+
+Eğer JS dosyasını CSS içine koymaya çalışırsan, CSS bunu anlamaz, hata verir.
+
+
+
+
+
+
+-->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+    <!--
+    <link> → HTML’de harici kaynak (çoğunlukla CSS) eklemek için kullanılır.
+    rel="stylesheet" → Kaynağın stil dosyası (CSS) olduğunu belirtir.
+    type="text/css" → Kaynağın CSS tipi olduğunu açıkça söyler (HTML5’te çoğu zaman opsiyonel).
+
+    href="..." → Bağlanacak dosyanın yolu veya URL’si.
+
+    ilk link tagı   Bu, Toastify JS kütüphanesi için stil dosyası. Toastify → küçük bildirim (toast notification) kutucukları gösterir.href → CDN linki (internet üzerinden yükleniyor).
+    Bu CSS olmadan toast kutuları tasarımlı gözükmez, sadece basit HTML olabilir.
+    Toastify -> Bildirim kutularının stilini yükler -> hrefide CDN linki dir
+
+
+
+ikinci link ise   bu, bizim projemiz için yazdığımız CSS.
+
+
+sonuç olarak Href ne işe yarıyor?
+------------------------------------
+href → “Bu stil dosyasını buradan al” demek.
+
+İki tür olabilir:
+
+        1.Tam URL → internetten yükleme (https://cdn.jsdelivr.net/...)
+
+        2.Proje içi dosya yolu → kendi dosya sisteminden yükleme (/static/style.css)
+
+    -->
+
+
+</head>
+
+
+
+
+
+
+<body>
+
+<!-- <nav> → Menü bölümü İçinde logo ve menü linkleri var CSS sınıfları ile: Navbar konumlandırılır, renk verilir, hover efektleri uygulanır Buton (theme-toggle) tıklanınca tema değişimi yapılabilir  -->
+    <nav class="navbar">
+        <div class="container nav-container"><!--  <div> → Genel amaçlı kapsayıcı (container).class="container nav-container" → iki CSS sınıfı birden uygulanıyor:container → sayfanın kenarlardan belli bir boşlukla ortalanması, genişlik kontrolü nav-container → özel navbar tasarımı (CSS’de menünün görünümü için) -->
+            <div class="logo"><!-- Navbar’daki logo alanı.  -->
+                <i class="fas fa-brain"></i> Sentiment<span class="highlight">AI</span> <!--Font Awesome ikon, burada beyin simgesi.    <span class="highlight"> → CSS ile “AI” kısmına farklı renk veya stil vermek için  -->
+            </div>
+            <ul class="nav-links"> <!-- Menü linkleri (sırasız liste)  <li> → her bir menü öğesi (list item) -->
+                <li><a href="#home" class="active">Ana Sayfa</a></li> <!-- class="active" → CSS ile “seçili” menüyü işaretler  -->
+                <li><a href="#analyze">Analiz Et</a></li>
+                <li><a href="#history">Geçmiş</a></li>
+                <li><button id="theme-toggle" class="theme-btn"><i class="fas fa-moon"></i></button></li> <!-- theme:tema , moon:ay , toggle:geçiş  <button> → interaktif buton, JS ile çalışır-->
+                <!-- Son <li> → bir buton  id="theme-toggle" → JS ile butona erişmek için  <i class="fas fa-moon"></i> → ikon, gece/gündüz teması için -->
+            </ul>
+            <!--mesela ul liste alta alta değil mi Ama navbar’daki gibi yatay yapmak mümkün css de display: flex; → <li> öğelerini yan yana dizer  list-style none; → default yuvarlak madde işaretlerini kaldırır alt alta olan maddelerin başındaki nokta  -->
+        </div>
+    </nav>
+
+
+
+
+
+
+<!-- Bu div tamamen tasarım amaçlıdır. İçinde metin yok.-->
+
+    <header id="home" class="hero">  <!-- <header> → sayfanın üst bölümü için kullanılan HTML etiketi. id="home" → menüden tıklayıp bu bölüme kaydırmak için (#home). class="hero" → CSS’de büyük görselli giriş alanı tasarlamak için verilen sınıf.-->
+        <div class="overlay"></div>   <!-- Overlay = üstüne yarı saydam bir katman eklemek. -->
+        <div class="container hero-content">  <!--container → sayfayı ortalamak ve genişliği sabitlemek. hero-content → bu hero bölümünün içindeki yazıları özel stil ile düzenlemek için sınıf. -->
+            <h1>Verilerin Duygusal Zekası</h1>  <!--<h1> → sayfanın ana başlığı.-->
+            <p>Sosyal medya, haberler ve videoların ardındaki gerçek hisleri yapay zeka ile keşfedin.</p>   <!--<p> → paragraf. Sayfada başlığın altında kısa açıklama.-->
+            <a href="#analyze" class="cta-button">Hemen Başla <i class="fas fa-arrow-down"></i></a>    <!--<a href="#analyze"> → tıklanınca sayfadaki #analyze bölümüne iner.  class="cta-button" → Call To Action (CTA) yani ziyaretçiyi yönlendiren buton.İçindeki <i class="fas fa-arrow-down"></i> → aşağı ok simgesi (Font Awesome ikonları). -->
+        </div>
+    </header>
+<!-- Arka plan (resim olabilir) Üstüne karartma overlay Orta kısımda Büyük başlık Açıklama Başla butonu (scroll-down) -->
+
+
+<!-- Hem class hem id birlikte kullanılabilir  <div id="main-nav" class="container nav-container dark">
+
+Burada:
+
+id="main-nav" → Sadece navbar’a özel JS/CSS işlemleri
+
+container, nav-container, dark → stil grupları
+
+Bu şekilde element hem genel class stillerini alır,
+hem de ID üzerinden özel işlem yapılabilir.
+
+
+En sade örnek
+
+<div id="header" class="container shadow big-padding">
+    Menü buraya gelecek
+</div>
+
+.container { width: 90%; margin: auto; }
+.shadow { box-shadow: 0 0 10px rgba(0,0,0,.3); }
+.big-padding { padding: 30px; }
+
+#header { background: #004aad; color: white; }
+
+Özet :
+
+- Class = Tekrarlanabilir stil grupları
+- ID = Tek elementlik özel stil
+- Bir elemana birden fazla class verilebilir
+- Class + ID birlikte kullanılabilir
+
+
+
+
+
+
+-->
+
+
+
+
+
+<!--  -->
+<!-- Bu bölümün ID’si #analyze → menüden “Analiz Et” butonuna tıklayınca bu bölüme kaydırır. -->
+
+<!-- bu bölüm sitendeki ANALİZ MERKEZİ sayfasının HTML yapısı. -->
+    <section id="analyze" class="section"> <!-- Bu bölümün ID’si #analyze → menüden “Analiz Et” butonuna tıklayınca bu bölüme kaydırır. class="section" → CSS’te bölüm tasarımı uygulanacak. -->
+        <div class="container"> <!-- Ortalayıcı kapsayıcı İçeriği ortalar, belli genişlik verir. -->
+            <div class="section-header"> <!-- Bölüm başlığı  -->
+                <h2>Analiz Merkezi</h2><!--bu bölümün başlığı.  -->
+                <p>Kaynağını seç ve yapay zekanın gücünü kullan.</p>
+            </div>
+
+            <div class="glass-panel"><!-- Cam efektli panel (Glassmorphism) -->
+                <div class="tabs"> <!-- Sekmeler (Tabs) Twitter / Haberler / YouTube   Üç tane buton tek satırda gösterilir.-->
+                    <button class="tab-btn active" onclick="switchTab('twitter')"><i class="fab fa-twitter"></i> Twitter</button><!-- class="tab-btn active" → Varsayılan aktif sekme . tıklanabilir buton.onclick="switchTab('twitter')" → Twitter sekmesini açar.  onclick="switchTab('twitter')" → tıklayınca JavaScript fonksiyonunu çalıştırır. <i class="fab fa-twitter"></i> → Font Awesome ikonu (Twitter simgesi).  -->
+                    <button class="tab-btn" onclick="switchTab('news')"><i class="fas fa-newspaper"></i> Haberler</button> <!--Haber Butonu -->
+                    <button class="tab-btn" onclick="switchTab('youtube')"><i class="fab fa-youtube"></i> YouTube</button> <!--YouTube Butonu -->
+                </div>
+
+<!--  -->
+
+                <!-- Girdi Alanları (Input Area),Girdi alanlarının tamamıİçinde : Twitter inputları Haber inputları YouTube inputu Analiz Butonu bulunur.    Kullanıcı burada: hashtag seçebilir kullanıcı adı seçebilir kelime yazabilir input ve select birlikte bir satırda (form row)-->
+                <div class="input-area">
+                    <div id="twitter-inputs" class="input-group"> <!--7. Twitter Inputları Varsayılan olarak görünen input grubu.-->
+                        <div class="form-row"> <!-- input ve select birlikte bir satırda (form row)  Aynı satırda iki input:-->
+                            <select id="twitter-type"> <!--Seçim kutusu Kullanıcı burada hashtag mi kullanıcı mı seçer.-->
+                                <option value="hashtag"># Hashtag / Kelime</option>
+                                <option value="username">@ Kullanıcı</option>
+                            </select>
+                            <input type="text" id="twitter-query" placeholder="örn: teknofest veya trthaber"> <!--Metin girişi Aranacak kelime / kullanıcı adı buraya yazılır. -->
+                        </div>
+                    </div>
+
+
+                    <!--Haberler inputları haber sitesini seçiyorsun kategori seçiyorsun (gündem, spor, ekonomi vs.) hidden → CSS ile görünmez (başlangıçta görünmüyor)  -->
+                   <!-- hidden → Başlangıçta görünmez.(“Haberler” sekmesine tıklanınca görünür.)-->
+                    <div id="news-inputs" class="input-group hidden">
+                        <div class="form-row">
+                            <!--Haber sitesi ve kategori Haber sitesi seçilince kategori listesi güncellenir.-->
+                            <select id="news-site" onchange="updateCategories()"></select>
+                            <select id="news-category"></select>
+                        </div>
+                    </div>
+
+
+                    <!-- YouTube Inputu , YouTube inputları Kullanıcı buraya YouTube linkini yapıştırıyor. Yine “hidden” → gerektiğinde görünür. -->
+                    <div id="youtube-inputs" class="input-group hidden"> <!--Yine başlangıçta gizli.-->
+                        <input type="text" id="youtube-url" placeholder="YouTube video linkini buraya yapıştırın...">  <!--Link inputu Kullanıcı YouTube linkini buraya yapıştırır. -->
+                    </div>
+
+                    <!-- Analiz butonu  Bu buton JS’deki startAnalysis() fonksiyonunu tetikler. Tıklayınca loader (yükleniyor animasyonu) çıkacak, sonuçlar işlenecek.-->
+                    <button class="analyze-submit-btn" onclick="startAnalysis()">Analizi Çalıştır</button><!--Tıklandığında startAnalysis() fonksiyonu çalışır , Loader görünür , API istekleri yapılır ,Tablo, grafikler, sonuçlar doldurulur-->
+
+                </div>
+            </div>
+
+            <!--Yükleniyor (Loader) animasyonu , Yükleniyor animasyonu  3 tane dönen circle animasyonu. Başta hidden → sadece analiz çalışırken görünür.-->
+            <div id="loader" class="loader hidden"> <!--Başlangıçta gizlidir Analiz başlayınca görünür. -->
+                <div class="circle"></div><div class="circle"></div><div class="circle"></div> <!--Dönen 3 yuvarlak:-->
+                <p>Veriler İşleniyor...</p> <!-- yazımız -->
+            </div>
+
+
+            <!-- 9. Sonuçlar Bölümü,bu bölüm analiz bitince görünür. -->
+            <div id="results-area" class="results-container hidden"> <!--Başlangıçta görünmez Analiz bitince sonuçlar buraya yüklenir. -->
+
+                <div class="result-header"> <!--Sonuç başlığı -->
+                    <h3 id="result-title">Analiz Sonucu</h3> <!-- Metin-->
+                    <span class="badge" id="total-badge">0 Metin</span> <!-- Kaç tane metin analiz edildiği JavaScript bu badge’e sayı yazacak. -->
+                </div>
+
+
+                <!-- 10. Duygu skor kartları Her kart:Pozitif , Negatif , Nötr , Görsel simge + sayı içeriyor.-->
+                <div class="metrics-grid"> <!--div → bir kutu / kapsayıcı.class="metrics-grid" → CSS’te grid (yan yana kart düzeni) için kullanılıyor.Bu kutunun içinde 3 kart olacak: Pozitif, Negatif, Nötr. -->
+                    <!-- İlk skor kartı başlıyor  class="metric-card" → bu bir skor kartı olduğunu belirtir, CSS’te özel tasarımı var. pos → bu kartın pozitif olduğunu gösteren ek class Renk, arka plan, ikon rengi, border gibi şeyleri belirlemek için..-->
+                    <div class="metric-card pos">
+
+                        <div class="icon"><i class="fas fa-smile"></i></div> <!--Kartın ikon kısmı CSS ile ikonun boyutu arka planı yuvarlak kenarlık hizalama ayarlanır.<i> → HTML’de ikon göstermek için kullanılan tag.fas → FontAwesome Solid ikon seti , fa-smile → gülen yüz ikonu -->
+                        <div class="info"><span class="label">Pozitif</span><span class="value" id="res-pos">0</span></div>
+                        <!-- Kartın bilgi kısmı span → satır içi metin etiketi. class="label" → bu metin, kartın başlığını ifade eden stil (yazı tipi, rengi). span class="value" id="res-pos">0</span> value → bu eleman içinde sayı tutuluyor (kaç tane pozitif tweet/haber).id="res-pos" → JavaScript burayı ID ile bulup güncelliyor.-->
+                    </div> <!-- kart kapanır ve 2.kart negatfif-->
+
+                    <div class="metric-card neg"> <!-- neg → negatif duygular için özel tasarım (kırmızımsı tonlar olabilir) -->
+
+                        <div class="icon"><i class="fas fa-frown"></i></div> <!--<i class="fas fa-frown"></i>  üzgün yüz ☹️ -->
+                        <div class="info"><span class="label">Negatif</span><span class="value" id="res-neg">0</span></div> <!-- <span class="value" id="res-neg">0</span> JS burayı güncelleyecek. -->
+
+                    </div>
+
+                    <div class="metric-card neu">
+
+                        <div class="icon"><i class="fas fa-meh"></i></div>
+                        <div class="info"><span class="label">Nötr</span><span class="value" id="res-neu">0</span></div> <!-- Değer <span class="value" id="res-neu">0</span -->
+
+                    </div>
+                </div>
+
+
+
+                <!-- 11.Grafik ve tablo alanı  -->
+                <div class="charts-tables-grid"> <!-- 1.charts-tables-grid charts-tables-grid İçinde Grafik kutusu Tablo kutusu bulunacak.CSS bunun yan yana mı alt alta mı olacağını belirler.-->
+
+                    <div class="chart-box"> <!--2. Grafik kutusunun dış kabı Grafik için ayrılmış özel kutu. İçine grafiğin canvas’ı gelecek.-->
+                        <canvas id="sentimentChart"></canvas> <!--3. Grafik alanı Chart.js grafiklerinin çizildiği yer. JavaScript bunu id’ye göre bulur: -->
+                    </div>
+
+                    <div class="table-box"> <!-- 4. Tablo kutusunun dış kabı Tabloyi kapsayan büyük kutu Design (çerçeve, gölge, arka plan) burada verilir..-->
+
+                        <div class="table-header"> <!--5. Tablo başlık bölümü  Sol: Başlık  Sağ: İndir butonu aynı satırda olacak şekilde bir üst kapsayıcı.-->
+                            <h4>Detaylı Veriler</h4>
+                            <button onclick="exportTableToCSV('analiz_sonuclari.csv')" class="export-btn"><i class="fas fa-download"></i> İndir</button>
+                            <!--7. CSV İndirme Butonu bu satır Kullanıcıya tabloyu CSV formatında indirme imkanı verir. onclick="..." sayesinde JavaScript fonksiyonu çalışır İçindeki <i> etiketi Font Awesome’dan "download" ikonu.-->
+                        </div>
+
+
+
+                        <div class="table-scroll"> <!-- 8. Tablo kaydırma alanı Tablonun içeriği fazla olunca kaydırılabilir hale getirir.-->
+
+                            <table id="result-table"> <!-- 9. Tablo Tüm verilerin doldurulacağı tablo. JavaScript bu tabloya satır ekler -->
+                                <thead><tr><th>Durum</th><th>İçerik</th><th>Link</th></tr></thead> <!-- Durum (pozitif / negatif / nötr) , İçerik (tweet, haber metni vs.) , Link (Kaynağın URL’si) -->
+                               <!-- 10. Tablo başlıkları  Durum: pozitif / negatif / nötr   İçerik: Tweet, haber metni, yorum metni   Link: Kaynağın URL’si  Bu sütun adları sabittir. -->
+                                <tbody></tbody> <!-- 11. Boş tablo gövdesi Başlangıçta boş JavaScript bunu analiz sonuçlarıyla doldurur-->
+                            </table>
+
+                        </div>
+
+
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- <section> → Sayfadaki ayrı bir bölüm. -->
+    <section id="history" class="section alt-bg"> <!--id="history" → Menüdeki “Geçmiş” linki buraya kaydırır. class="section" → Genel bölüm tasarımı uygulanır. class="alt-bg" → Arka planı farklı renkli yapan CSS sınıfı (bölümler arasında kontrast sağlar).-->
+
+
+
+        <div class="container"> <!-- Sayfa genişliğini sınırlar. İçeriği ortalar.Soldan sağdan boşluk verir. -->
+
+
+            <div class="section-header"> <!--Bölüm Başlığı Bu bölümün başlık kısmı. -->
+                <h2>Son Analizler</h2> <!--Bölüm ana başlığı.-->
+                <p>Veritabanına kaydedilen son işlemler.</p>
+            </div>
+
+
+
+            <!--Geçmiş Tablosu – Analiz sonuç listesi-->
+            <div class="history-wrapper"> <!--Tabloyu çevreler Taşma, scrollbar, kenar boşlukları bu div üzerinden ayarlanır.-->
+                <table id="history-table" class="styled-table"> <!--Tablo başlangıc <table> → Veri tablosu.id="history-table" → JS bu tabloya veri eklemek için kullanır. class="styled-table" → CSS’ten özel tablo tasarımı uygulanır.-->
+                    <thead> <!-- Tablo başlık satırı. -->
+                        <tr> <!--Satır. -->
+                            <th>Tarih</th> <!--Sütun başlığı. -->
+                            <th>Kaynak</th>
+                            <th>Detay</th>
+                            <th>Pozitif</th>
+                            <th>Negatif</th>
+                            <th>Nötr</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody></tbody> <!--Tablo gövdesi Boş başlatılır.JavaScript geçmiş analizleri buraya satır satır ekler.-->
+
+                </table>
+            </div>
+
+
+
+
+
+
+
+            <!--Aşağıdaki Kartlar: Genel Toplam İstatistikler -->
+            <div class="history-summary"> <!-- Tablonun altında, toplam istatistikleri gösteren bölüm.-->
+                <h3><i class="fas fa-chart-line"></i> Genel Toplam İstatistikler</h3> <!-- <i class="fas fa-chart-line"></i> → Grafik ikon (Font Awesome). Kullanıcıya, tüm geçmiş analizlerin toplam istatistiklerini gösterir.-->
+                <div class="summary-grid"> <!-- Grid kutusu kartların yan yana dizilmesini sağlar. -->
+
+                    <!-- Toplam Veriler Kartları Her kart aynı yapıda-->
+                    <div class="summary-card total"> <!-- summary-card → Kart tasarımı total → "Toplam" kartı için özel renk/stil -->
+                        <div class="s-icon"><i class="fas fa-database"></i></div> <!-- Veri tabanı simgesi -->
+
+                        <div class="s-info">
+                            <span class="s-val" id="hist-total">0</span> <!--s-val → JS tarafından güncellenen değer  id="hist-total" → JS buraya tüm geçmiş veri sayısını yazar -->
+                            <span class="s-lbl">Toplam Veri</span> <!--s-lbl → Açıklama -->
+                        </div>
+                    </div>
+
+                    <div class="summary-card pos"> <!--2. Kart: Toplam Pozitif  pos → Pozitif renk (yeşilimsi) -->
+                        <div class="s-icon"><i class="fas fa-thumbs-up"></i></div>
+
+                        <div class="s-info">
+                            <span class="s-val" id="hist-pos">0</span> <!-- id="hist-pos" → JS pozitif toplam sayıyı buraya yazar -->
+                            <span class="s-lbl">Toplam Pozitif</span>
+                        </div>
+
+                    </div>
+
+                    <div class="summary-card neg"> <!-- 3. Kart: Toplam Negatif neg → Negatif kart rengi (kırmızımsı) -->
+                        <div class="s-icon"><i class="fas fa-thumbs-down"></i></div>
+
+                        <div class="s-info">
+                            <span class="s-val" id="hist-neg">0</span> <!-- id="hist-neg" → Negatif toplam değeri JS buraya yazar. -->
+                            <span class="s-lbl">Toplam Negatif</span>
+                        </div>
+
+                    </div>
+
+                    <div class="summary-card neu"> <!-- neu → Nötr kart rengi (sarımtrak/soluk) -->
+                        <div class="s-icon"><i class="fas fa-minus"></i></div>
+
+                        <div class="s-info">
+                            <span class="s-val" id="hist-neu">0</span> <!-- id="hist-neu" → Nötr toplam değer buraya set edilir. -->
+                            <span class="s-lbl">Toplam Nötr</span>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+
+
+
+
+
+
+
+    <footer> <!--Sayfanın en alt bölümünü başlatır. Footer genelde telif hakkı, iletişim, sosyal medya linkleri için kullanılır.-->
+        <p>&copy; 2025 SentimentAI Projesi. Tüm hakları saklıdır.</p> <!--<p> → paragraf etiketi.  &copy; → HTML özel karakter → “©” işareti üretir.-->
+    </footer>
+
+    <!-- Script Dosyaları Script dosyaları footer’ın altında olması performans içindir ⚡ Sayfa daha hızlı yüklenir ⚡ HTML içerik tamamen yüklendikten sonra JavaScript çalışır-->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script> <!--Toastify — Bildirim Kütüphanesi <script> → JavaScript dosyası eklemek için kullanılır. type="text/javascript" → Dosyanın JS olduğunu belirtir (opsiyonel ama zarar yok).
+    src="..." → Harici kaynak URL’si.https://cdn.jsdelivr.net/npm/toastify-js → Kullanıcıya “başarılı”, “hata”, “uyarı” gibi popup bildirimleri gösteren kütüphane.bu projende ne işe yarıyor? Analiz tamamlanınca “Analiz başarıyla tamamlandı!” gibi bildirim göstermek için.-->
+
+    <!-- Confetti — Konfeti Animasyonu-->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script> <!-- JS kütüphanesi.canvas-confetti → renkli konfeti efekti oluşturur. Analiz başarıyla tamamlandığında veya belirli başarı durumlarında kullanılır.-->
+
+    <script src="/static/script.js"></script> <!-- Projenin kendi JavaScript dosyası Projenin ana JavaScript dosyası.-->
+</body>
+</html>

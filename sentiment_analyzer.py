@@ -1,5 +1,5 @@
 import pandas as pd
-import streamlit as st
+
 from transformers import pipeline
 
 import config
@@ -11,7 +11,7 @@ fonksiyon ilk kez çağrıldığında sonucumuzu yani return ettiğimizi burada 
 dil modelleri boyutları genelde yüksektir her analizde diskten okuma yapıp belleğe yazma işlemi işlemlerimizi yavaşlatmasın diye bu işlemi gerçekleştirdik.
 
 '''
-@st.cache_resource
+
 def load_model():
 
     try:
@@ -33,7 +33,7 @@ def load_model():
 
     except Exception as e :
         print(f"Model yüklenirken hata oluştu: {e}")
-        st.error(f"Model yüklenemdi: {e}")
+
         return None
 
 
@@ -72,7 +72,7 @@ def analyze_dataframe(df,model):
 
             # herhangi bir hata oluşursa hem terminalde hemde arayüz ekranımızda hata olduğunu belirtiyoruz
             print(f"Metinler analiz edilirken bir hata oluştu: {e}")
-            st.warning("Bazı metinler analiz edilirken bir sorun oluştu.")
+
 
 
             df["Duygu Durumu"] = "Hata" # dataframe deki duygu durumunu hata olarak ayarlıyoruz

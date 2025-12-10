@@ -1,7 +1,7 @@
 import tweepy  # Python'un Twitter ile konuşmasını sağlayan kütüphanemiz.biz python yazıyoruz, o bunu twitter'ın anlayacağı api diline çeviriyor.
 import pandas as pd
 import config # api anahtarlarını sakladığımız dosya
-import streamlit as st
+
 
 import feedparser           # RSS okumak için
 import requests             # Web isteği göndermek için
@@ -69,8 +69,7 @@ def _fetch_tweets_by_user(username, count=config.TWITTER_MAX_RESULTS):
     # rate limit hatası yakalama ---> twitter api aynı anda çok fazla istek yapılırsa 429 TooManyRequests döndürür.
     except tweepy.errors.TooManyRequests:
 
-        st.error(
-            "⏳ Twitter API kullanım limitine takıldınız (Kullanıcı Arama). Lütfen ~15 dakika sonra tekrar deneyin.")
+
         print("❌ Rate limit (Kullanıcı Arama).")
         return pd.DataFrame(columns=['text', 'link']) # Fonksiyon boş bir DataFrame döndürür. sütunları text ve link dir
 
@@ -129,7 +128,7 @@ def _fetch_tweets_by_user(username, count=config.TWITTER_MAX_RESULTS):
 
     except tweepy.errors.TooManyRequests: # tweet çekerken rate limit hatası --> tweet çekme sırasında limit aşılırsa
 
-        st.error("⏳ Twitter API kullanım limitine takıldınız (Tweet Çekme). Lütfen ~15 dakika sonra tekrar deneyin.")
+
         print("❌ Rate limit (Tweet Çekme).")
         return pd.DataFrame(columns=['text', 'link'])
 
@@ -232,7 +231,7 @@ def _fetch_tweets_by_hashtag(hashtag_or_query, count=config.TWITTER_MAX_RESULTS)
 
     except tweepy.errors.TooManyRequests: # twitter bizi engellediyse (çok istek attıysak) --- rate limit'e takılınca buraya düşer.
 
-        st.error("⏳ Twitter API kullanım limitine takıldınız (Hashtag Arama). Lütfen ~15 dakika sonra tekrar deneyin.") # kullanıcıya streamlit içinden uyarı verir.
+
         print("❌ Rate limit (Hashtag Arama).") # konsola uyarı mesajı yazdırır.
         return pd.DataFrame(columns=['text', 'link']) # Boş DataFrame gönderir.
 
@@ -369,7 +368,7 @@ def fetch_news_headlines(site_key, category_key, count=config.NEWS_MAX_RESULTS):
 
     except Exception as e: # üstteki kodlarda herhangi bir hata olursa , Konsola yazar , streamlit ekranda gösterir , fonksiyon çökmez, boş tablo döndürür.
         print(f"RSS beslemesi işlenirken bir hata oluştu: {e}")
-        st.error(f"{site_key} verisi çekilirken hata: {e}")
+
         return pd.DataFrame(columns=['text', 'link'])
 
 
@@ -451,7 +450,7 @@ def fetch_youtube_comments(video_id, count=config.YOUTUBE_MAX_RESULTS):   # bura
     # Bir objenin (class, modul, instance fark etmez) içinde belirtilen isimde bir değişken var mı diye kontrol eder.
     # hasattr(config, 'YOUTUBE_API_KEY') --> config dosyasında YOUTUBE_API_KEY isminde şey var mı?
     if not hasattr(config, 'YOUTUBE_API_KEY') or not config.YOUTUBE_API_KEY:
-        st.error("config.py dosyasında YOUTUBE_API_KEY bulunamadı.")
+
         return pd.DataFrame(columns=['text', 'link']), video_title # eğer yoksa boş bir DataFrame ve video_title döndürür
 
     try:# asıl api işlemlerimiz try bloğumuz
@@ -550,7 +549,7 @@ def fetch_youtube_comments(video_id, count=config.YOUTUBE_MAX_RESULTS):   # bura
     #HttpError, Google’ın YouTube API kitaplığının hata sınıfıdır . geldiği    yer    from googleapiclient.errors import HttpError
     #api kry yanlış ,kota dolmuş ,video silinmiş ,yorumlar engellenmiş bu tip hatalar HTTP protokolü üzerinden geldiği için Google bunlara HttpError der.
     except HttpError as e:
-        st.error(f"YouTube API Hatası: {e.resp.status} - {e._get_reason()}")
+
         # e.resp.status Nedir? resp --> “response” anlamında youtube api’nin döndürdüğü HTTP cevabı.
         # status --> HTTP durum kodu (status code)Örnek değerler: 400: Bad Request (yanlış istek) ,401: Unauthorized (API key yanlış) ,403: Forbidden (kota doldu/erişim yok) ,404: Not Found (video yok) , 500: Internal Server Error (YouTube problemi)
         # yani e.resp.status --> api’nin döndürdüğü hata kodunu verir.
@@ -568,7 +567,7 @@ def fetch_youtube_comments(video_id, count=config.YOUTUBE_MAX_RESULTS):   # bura
     # Programdaki diğer hatalar (sıfıra bölme, JSON bozulması, internet kesilmesi, başka programlama hataları) -->  bunlar Exception ile yakalanır. Bu bölüm bunları ayırmak için yazılmıştır.
     # Exception sınıfı Python’daki tüm hata türlerinin atasıdır.Örnek yakalayacağı hatalar: KeyError ,TypeError ,ValueError  ,IndexError  Yani: eğer api hatası --> HttpError , diğer tüm hatalar --> Exception
     except Exception as e:
-        st.error(f"YouTube hatası: {e}")
+
         print(f"❌ YouTube hatası: {e}")
         return pd.DataFrame(columns=['text', 'link']), video_title  # Hata olsa bile fonksiyon:boş bir DataFrame video başlığı (default)döndürür.bu sayede uygulama çökmemiş olur.
 
