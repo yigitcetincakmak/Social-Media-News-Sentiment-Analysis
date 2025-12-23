@@ -4,13 +4,7 @@ from transformers import pipeline
 
 import config
 
-'''
-@st.cache_resource ---> streamlit'in bir dekoratörüdür yani fonksiyonu süsleyen bir direktif bunu kullanma amacımız
-fonksiyon ilk kez çağrıldığında sonucumuzu yani return ettiğimizi burada modelimiz return ediyoruz bunu streamlit'in hafızasında yani cache'de tutması kaydetmesidir
-çünkü ilerde fonksiyon çağrıları yaptığımızda bu fonksiyonu tekrar çalıştırmak yerine , hafızadaki o değeri , sonucu bize direkt geri döner.
-dil modelleri boyutları genelde yüksektir her analizde diskten okuma yapıp belleğe yazma işlemi işlemlerimizi yavaşlatmasın diye bu işlemi gerçekleştirdik.
 
-'''
 
 def load_model():
 
